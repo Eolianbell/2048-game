@@ -95,9 +95,11 @@
             align-items: center;
             padding: 20px;
             min-height: 100vh;
-            overflow-x: hidden;
-            overflow-y: auto;
+            overflow: hidden;
             touch-action: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
             transition: all 0.3s ease;
         }
         
@@ -229,9 +231,31 @@
             grid-template-columns: repeat(var(--grid-size), var(--cell-size));
             grid-template-rows: repeat(var(--grid-size), var(--cell-size));
             gap: var(--gap-size);
-            /* 根据视口高度动态调整 */
-            max-height: calc(100vh - 250px);
-            max-width: calc(100vw - 40px);
+        }
+        
+        /* 根据网格大小动态调整单元格尺寸 - 让所有网格都能完整显示 */
+        /* 4x4 - 默认大小 */
+        body[data-grid="4"] .grid-container {
+            --cell-size: min(80px, calc((100vh - 280px) / 4));
+            --gap-size: 10px;
+        }
+        
+        /* 5x5 - 缩小一点 */
+        body[data-grid="5"] .grid-container {
+            --cell-size: min(65px, calc((100vh - 280px) / 5));
+            --gap-size: 8px;
+        }
+        
+        /* 6x6 - 再缩小 */
+        body[data-grid="6"] .grid-container {
+            --cell-size: min(55px, calc((100vh - 280px) / 6));
+            --gap-size: 6px;
+        }
+        
+        /* 3x3 - 可以大一点 */
+        body[data-grid="3"] .grid-container {
+            --cell-size: min(90px, calc((100vh - 280px) / 3));
+            --gap-size: 12px;
         }
         
         .grid-cell {
@@ -363,10 +387,6 @@
                 margin-bottom: 15px;
             }
             
-            .grid-container {
-                --cell-size: min(60px, calc((100vh - 220px - (var(--grid-size) - 1) * 8px) / var(--grid-size)));
-                --gap-size: 8px;
-            }
         }
         
         /* ========== 移动端适配 ========== */
@@ -405,12 +425,25 @@
                 border-radius: 50%;
             }
             
-            .grid-container {
-                --cell-size: min(50px, calc((100vw - 40px - (var(--grid-size) - 1) * 6px) / var(--grid-size)));
+            /* 移动端也使用 data-grid 响应式 */
+            body[data-grid="4"] .grid-container {
+                --cell-size: min(60px, calc((100vh - 250px) / 4));
+                --gap-size: 8px;
+            }
+            
+            body[data-grid="5"] .grid-container {
+                --cell-size: min(50px, calc((100vh - 250px) / 5));
                 --gap-size: 6px;
-                grid-template-columns: repeat(var(--grid-size), var(--cell-size));
-                grid-template-rows: repeat(var(--grid-size), var(--cell-size));
-                gap: var(--gap-size);
+            }
+            
+            body[data-grid="6"] .grid-container {
+                --cell-size: min(42px, calc((100vh - 250px) / 6));
+                --gap-size: 5px;
+            }
+            
+            body[data-grid="3"] .grid-container {
+                --cell-size: min(70px, calc((100vh - 250px) / 3));
+                --gap-size: 10px;
             }
         }
         }
@@ -487,6 +520,10 @@
         gridSize = parseInt(currentDifficulty);
         const root = document.documentElement;
         root.style.setProperty('--grid-size', gridSize.toString());
+        
+        // 设置 data-grid 属性用于 CSS 响应式
+        document.body.setAttribute('data-grid', gridSize.toString());
+        
         const isMobile = window.innerWidth <= 500;
         root.style.setProperty('--gap-size', (isMobile ? 6 : 10) + 'px');
         
@@ -530,6 +567,9 @@
             // 更新 CSS 变量
             const root = document.documentElement;
             root.style.setProperty('--grid-size', gridSize.toString());
+            
+            // 设置 data-grid 属性用于 CSS 响应式
+            document.body.setAttribute('data-grid', gridSize.toString());
             
             // 直接设置 grid-container 样式，确保生效
             const gridContainer = document.getElementById('grid-container');

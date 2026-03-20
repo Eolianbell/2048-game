@@ -272,6 +272,8 @@
             font-weight: bold;
             transition: all 0.15s ease;
             z-index: 10;
+            /* 确保与 grid-cell 完全对齐 */
+            box-sizing: border-box;
         }
         
         .tile-new {
@@ -641,7 +643,10 @@
             // 从 CSS 变量获取 gap
             const computedStyle = getComputedStyle(document.documentElement);
             const gap = parseFloat(computedStyle.getPropertyValue('--gap-size')) || 10;
-            const padding = window.innerWidth <= 500 ? 8 : 10;
+            // 获取容器的实际 padding
+            const containerStyle = getComputedStyle(container);
+            const paddingTop = parseFloat(containerStyle.paddingTop) || 10;
+            const paddingLeft = parseFloat(containerStyle.paddingLeft) || 10;
             const tileSize = getTileSize(cellSize);
             
             // 清除旧的 tile
@@ -657,8 +662,9 @@
                         let className = `tile tile-${value <= 2048 ? value : 'super'}`;
                         tile.className = className;
                         tile.textContent = value;
-                        tile.style.left = `${padding + c * (cellSize.width + gap)}px`;
-                        tile.style.top = `${padding + r * (cellSize.height + gap)}px`;
+                        // 精确计算位置，与 grid-cell 完全对齐
+                        tile.style.left = `${paddingLeft + c * (cellSize.width + gap)}px`;
+                        tile.style.top = `${paddingTop + r * (cellSize.height + gap)}px`;
                         tile.style.width = `${cellSize.width}px`;
                         tile.style.height = `${cellSize.height}px`;
                         
@@ -684,9 +690,12 @@
                 const cellSize = getCellSize();
                 const computedStyle = getComputedStyle(document.documentElement);
                 const gap = parseFloat(computedStyle.getPropertyValue('--gap-size')) || 10;
-                const padding = window.innerWidth <= 500 ? 8 : 10;
-                const expectedLeft = padding + newTile.c * (cellSize.width + gap);
-                const expectedTop = padding + newTile.r * (cellSize.height + gap);
+                // 获取容器的实际 padding
+                const containerStyle = getComputedStyle(container);
+                const paddingTop = parseFloat(containerStyle.paddingTop) || 10;
+                const paddingLeft = parseFloat(containerStyle.paddingLeft) || 10;
+                const expectedLeft = paddingLeft + newTile.c * (cellSize.width + gap);
+                const expectedTop = paddingTop + newTile.r * (cellSize.height + gap);
                 
                 const tiles = document.querySelectorAll('.tile');
                 tiles.forEach(tile => {

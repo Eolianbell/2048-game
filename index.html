@@ -261,26 +261,34 @@
         .grid-cell {
             background: var(--cell-bg);
             border-radius: 6px;
-        }
-        
-        .tile {
-            position: absolute;
-            border-radius: 6px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
+            font-size: 35px;
             transition: all 0.15s ease;
-            z-index: 10;
-            /* 确保与 grid-cell 完全对齐 */
-            box-sizing: border-box;
+            position: relative;
         }
         
-        .tile-new {
+        /* 数字单元格样式 - 经典主题 */
+        .grid-cell.cell-2 { background: #eee4da; color: #776e65; }
+        .grid-cell.cell-4 { background: #ede0c8; color: #776e65; }
+        .grid-cell.cell-8 { background: #f2b179; color: #f9f6f2; }
+        .grid-cell.cell-16 { background: #f59563; color: #f9f6f2; }
+        .grid-cell.cell-32 { background: #f67c5f; color: #f9f6f2; }
+        .grid-cell.cell-64 { background: #f65e3b; color: #f9f6f2; }
+        .grid-cell.cell-128 { background: #edcf72; color: #f9f6f2; font-size: 30px; }
+        .grid-cell.cell-256 { background: #edcc61; color: #f9f6f2; font-size: 30px; }
+        .grid-cell.cell-512 { background: #edc850; color: #f9f6f2; font-size: 30px; }
+        .grid-cell.cell-1024 { background: #edc53f; color: #f9f6f2; font-size: 25px; }
+        .grid-cell.cell-2048 { background: #edc22e; color: #f9f6f2; font-size: 25px; }
+        .grid-cell.cell-super { background: #3c3a32; color: #f9f6f2; font-size: 20px; }
+        
+        .grid-cell.cell-new {
             animation: appear 0.2s ease;
         }
         
-        .tile-merged {
+        .grid-cell.cell-merged {
             animation: pop 0.2s ease;
         }
         
@@ -294,20 +302,6 @@
             50% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
-        
-        /* Tile 颜色 - 经典主题 */
-        .tile-2 { background: #eee4da; color: #776e65; }
-        .tile-4 { background: #ede0c8; color: #776e65; }
-        .tile-8 { background: #f2b179; color: #f9f6f2; }
-        .tile-16 { background: #f59563; color: #f9f6f2; }
-        .tile-32 { background: #f67c5f; color: #f9f6f2; }
-        .tile-64 { background: #f65e3b; color: #f9f6f2; }
-        .tile-128 { background: #edcf72; color: #f9f6f2; }
-        .tile-256 { background: #edcc61; color: #f9f6f2; }
-        .tile-512 { background: #edc850; color: #f9f6f2; }
-        .tile-1024 { background: #edc53f; color: #f9f6f2; }
-        .tile-2048 { background: #edc22e; color: #f9f6f2; }
-        .tile-super { background: #3c3a32; color: #f9f6f2; }
         
         .game-message {
             position: absolute;
@@ -624,62 +618,30 @@
             return null;
         }
 
-        function getCellSize() {
-            const container = document.getElementById('grid-container');
-            const cell = container.querySelector('.grid-cell');
-            return cell ? cell.getBoundingClientRect() : { width: 100, height: 100 };
-        }
-
-        function getTileSize(cellSize) {
-            // 根据网格大小动态调整字体
-            if (gridSize <= 4) return { fontSize: 35, smallFont: 25 };
-            if (gridSize === 5) return { fontSize: 28, smallFont: 20 };
-            return { fontSize: 22, smallFont: 16 };
-        }
-
         function render() {
-            const container = document.getElementById('grid-container');
-            const cellSize = getCellSize();
-            const tileSize = getTileSize(cellSize);
+            const cells = document.querySelectorAll('.grid-cell');
             
-            // 清除旧的 tile
-            const oldTiles = container.querySelectorAll('.tile');
-            oldTiles.forEach(tile => tile.remove());
-
-            // 获取所有 grid-cell 元素
-            const cells = container.querySelectorAll('.grid-cell');
-            
-            // 渲染新的 tile - 直接使用 grid-cell 的位置
+            // 更新每个 grid-cell 的内容和样式
             for (let r = 0; r < gridSize; r++) {
                 for (let c = 0; c < gridSize; c++) {
-                    if (board[r][c] !== 0) {
-                        const cellIndex = r * gridSize + c;
-                        const cell = cells[cellIndex];
-                        const cellRect = cell.getBoundingClientRect();
-                        const containerRect = container.getBoundingClientRect();
+                    const cellIndex = r * gridSize + c;
+                    const cell = cells[cellIndex];
+                    const value = board[r][c];
+                    
+                    // 清除所有样式类
+                    cell.className = 'grid-cell';
+                    cell.textContent = '';
+                    
+                    if (value !== 0) {
+                        // 设置数字
+                        cell.textContent = value;
                         
-                        const tile = document.createElement('div');
-                        const value = board[r][c];
-                        let className = `tile tile-${value <= 2048 ? value : 'super'}`;
-                        tile.className = className;
-                        tile.textContent = value;
-                        
-                        // 使用 grid-cell 的实际位置，确保完全对齐
-                        tile.style.left = `${cellRect.left - containerRect.left}px`;
-                        tile.style.top = `${cellRect.top - containerRect.top}px`;
-                        tile.style.width = `${cellRect.width}px`;
-                        tile.style.height = `${cellRect.height}px`;
-                        
-                        // 根据数字大小和网格调整字体
-                        if (value >= 128 && value < 1024) {
-                            tile.style.fontSize = `${tileSize.smallFont + 5}px`;
-                        } else if (value >= 1024) {
-                            tile.style.fontSize = `${tileSize.smallFont}px`;
+                        // 添加对应的样式类
+                        if (value <= 2048) {
+                            cell.classList.add('cell-' + value);
                         } else {
-                            tile.style.fontSize = `${tileSize.fontSize}px`;
+                            cell.classList.add('cell-super');
                         }
-                        
-                        container.appendChild(tile);
                     }
                 }
             }
@@ -688,23 +650,10 @@
         function renderWithAnimation(newTile) {
             render();
             if (newTile) {
-                const container = document.getElementById('grid-container');
-                const cells = container.querySelectorAll('.grid-cell');
+                const cells = document.querySelectorAll('.grid-cell');
                 const cellIndex = newTile.r * gridSize + newTile.c;
                 const cell = cells[cellIndex];
-                const cellRect = cell.getBoundingClientRect();
-                const containerRect = container.getBoundingClientRect();
-                const expectedLeft = cellRect.left - containerRect.left;
-                const expectedTop = cellRect.top - containerRect.top;
-                
-                const tiles = document.querySelectorAll('.tile');
-                tiles.forEach(tile => {
-                    const left = parseFloat(tile.style.left);
-                    const top = parseFloat(tile.style.top);
-                    if (Math.abs(left - expectedLeft) < 1 && Math.abs(top - expectedTop) < 1) {
-                        tile.classList.add('tile-new');
-                    }
-                });
+                cell.classList.add('cell-new');
             }
         }
 

@@ -221,8 +221,10 @@
             border-radius: 10px;
             padding: 10px;
             position: relative;
-            touch-action: none;
+            touch-action: none; /* 禁用所有默认触摸动作 */
             transition: background 0.3s ease;
+            user-select: none; /* 防止选中文本 */
+            -webkit-user-select: none;
         }
         
         .grid-container {
@@ -805,27 +807,65 @@
 
         let touchStartX = 0;
         let touchStartY = 0;
+        let touchStartTime = 0;
+        let hasMoved = false;
 
+        // 触摸开始
         document.addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
+            hasMoved = false;
         }, {passive: true});
 
+        // 触摸移动（防止滚动）
+        document.addEventListener('touchmove', (e) => {
+            if (!hasMoved) {
+                const dx = e.touches[0].clientX - touchStartX;
+                const dy = e.touches[0].clientY - touchStartY;
+                // 如果滑动距离超过 10px，认为是滑动手势，阻止页面滚动
+                if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                    hasMoved = true;
+                }
+            }
+            // 在游戏区域内阻止默认滚动
+            if (e.target.closest('.game-container')) {
+                e.preventDefault();
+            }
+        }, {passive: false});
+
+        // 触摸结束
         document.addEventListener('touchend', (e) => {
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
             
             const dx = touchEndX - touchStartX;
             const dy = touchEndY - touchStartY;
+            const deltaTime = Date.now() - touchStartTime;
             
-            const minSwipe = 50;
+            // 降低滑动阈值，更灵敏
+            const minSwipe = 30;
             
-            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minSwipe) {
-                move(dx > 0 ? 'right' : 'left');
-            } else if (Math.abs(dy) > minSwipe) {
-                move(dy > 0 ? 'down' : 'up');
+            // 快速滑动检测（速度 > 0.5px/ms）
+            const speedX = Math.abs(dx) / deltaTime;
+            const speedY = Math.abs(dy) / deltaTime;
+            const isQuickSwipe = speedX > 0.5 || speedY > 0.5;
+            
+            // 水平滑动
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (Math.abs(dx) > minSwipe || isQuickSwipe) {
+                    e.preventDefault();
+                    move(dx > 0 ? 'right' : 'left');
+                }
+            } 
+            // 垂直滑动
+            else {
+                if (Math.abs(dy) > minSwipe || isQuickSwipe) {
+                    e.preventDefault();
+                    move(dy > 0 ? 'down' : 'up');
+                }
             }
-        }, {passive: true});
+        }, {passive: false});
 
         initGame();
     </script>

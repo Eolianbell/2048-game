@@ -33,89 +33,113 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 10px;
-            height: 100vh;
+            padding: 8px;
+            height: 100dvh;
             touch-action: none;
             user-select: none;
         }
         
         h1 {
-            font-size: 20px;
+            font-size: 18px;
             margin-bottom: 5px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            flex-shrink: 0;
         }
         
-        /* 预览区域 */
-        .top-area {
+        /* 移动端顶部信息区 */
+        .mobile-top {
             display: none;
-            flex-direction: row;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
             width: 100%;
             flex-shrink: 0;
         }
         
+        /* 分数行 */
+        .score-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        .score-mini {
+            background: var(--btn-bg);
+            padding: 5px 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .score-mini-label {
+            color: #aaa;
+            font-size: 10px;
+        }
+        
+        .score-mini-value {
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        /* 预览+按钮行 */
+        .preview-btn-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        
         .preview-box {
             background: var(--btn-bg);
-            padding: 5px 8px;
+            padding: 5px;
             border-radius: 6px;
             text-align: center;
         }
         
         .preview-label {
             color: var(--accent);
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
-            margin-bottom: 3px;
         }
         
         .preview-grid {
-            width: 36px;
-            height: 36px;
+            width: 45px;
+            height: 45px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(4, 1fr);
             gap: 1px;
             background: rgba(0,0,0,0.3);
-            border-radius: 3px;
-            padding: 2px;
+            border-radius: 4px;
+            padding: 3px;
+            margin-top: 3px;
         }
         
         .preview-cell {
-            border-radius: 1px;
+            border-radius: 2px;
             background: rgba(255,255,255,0.1);
         }
         
         .preview-cell.filled {
-            box-shadow: inset 0 0 2px rgba(255,255,255,0.3);
+            box-shadow: inset 0 0 3px rgba(255,255,255,0.3);
         }
         
-        /* 分数栏 */
-        .score-row {
-            display: none;
-            flex-direction: row;
-            justify-content: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-        
-        .score-mini {
-            background: var(--btn-bg);
-            padding: 4px 10px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        
-        .score-mini-label {
-            color: #aaa;
-            font-size: 9px;
-        }
-        
-        .score-mini-value {
+        .hold-btn {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
             color: #fff;
-            font-size: 12px;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 13px;
             font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(233, 69, 96, 0.3);
+        }
+        
+        .hold-btn:active {
+            transform: scale(0.95);
         }
         
         /* 方块颜色 */
@@ -127,6 +151,17 @@
         .preview-cell.J, .cell.J { background: linear-gradient(135deg, #448aff, #2196f3); }
         .preview-cell.L, .cell.L { background: linear-gradient(135deg, #ff9800, #ff5722); }
         
+        /* 游戏区域 */
+        .game-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+            width: 100%;
+        }
+        
+        /* PC端布局 */
         .game-wrapper {
             display: flex;
             gap: 20px;
@@ -150,7 +185,6 @@
         .score-label {
             color: #aaa;
             font-size: 12px;
-            text-transform: uppercase;
         }
         
         .score-value {
@@ -206,16 +240,6 @@
         .btn:hover { background: #1a4a7a; }
         .btn-hold { background: var(--accent); }
         
-        /* 游戏容器 */
-        .game-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 0;  /* 关键：允许flex收缩 */
-        }
-        
         .game-container {
             background: var(--board-bg);
             border-radius: 8px;
@@ -264,29 +288,6 @@
             margin-bottom: 15px;
         }
         
-        /* 底部按钮 */
-        .bottom-area {
-            display: none;
-            flex-shrink: 0;
-            padding-top: 5px;
-        }
-        
-        .hold-btn {
-            background: linear-gradient(135deg, #e94560, #ff6b6b);
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 25px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 3px 8px rgba(233, 69, 96, 0.4);
-        }
-        
-        .hold-btn:active {
-            transform: scale(0.95);
-        }
-        
         .instructions {
             margin-top: 20px;
             color: #aaa;
@@ -298,29 +299,20 @@
         @media (max-width: 700px) {
             body {
                 padding: 5px;
-                height: 100vh;
-                height: 100dvh;  /* 动态视口高度 */
+                height: 100dvh;
             }
             
             h1 {
                 font-size: 14px;
                 margin-bottom: 3px;
-                flex-shrink: 0;
             }
             
-            .top-area {
+            .mobile-top {
                 display: flex;
-                margin-bottom: 3px;
-            }
-            
-            .score-row {
-                display: flex;
-                margin-bottom: 3px;
             }
             
             .game-wrapper {
                 flex-direction: column;
-                gap: 0;
             }
             
             .side-panel {
@@ -328,23 +320,13 @@
             }
             
             .game-area {
-                flex: 1;
-                min-height: 0;
-                width: 100%;
+                padding: 0;
             }
             
             .game-container {
                 padding: 3px;
                 border-width: 1px;
-            }
-            
-            .bottom-area {
-                display: block;
-            }
-            
-            .hold-btn {
-                padding: 10px 20px;
-                font-size: 12px;
+                border-radius: 6px;
             }
             
             .instructions { display: none; }
@@ -354,30 +336,35 @@
 <body>
     <h1>🧱 俄罗斯方块</h1>
     
-    <!-- 移动端顶部：预览+分数 -->
-    <div class="top-area">
-        <div class="preview-box">
-            <div class="preview-label">保留</div>
-            <div class="preview-grid" id="hold-preview-m"></div>
+    <!-- 移动端顶部 -->
+    <div class="mobile-top">
+        <!-- 分数行 -->
+        <div class="score-row">
+            <div class="score-mini">
+                <div class="score-mini-label">得分</div>
+                <div class="score-mini-value" id="score-m">0</div>
+            </div>
+            <div class="score-mini">
+                <div class="score-mini-label">等级</div>
+                <div class="score-mini-value" id="level-m">1</div>
+            </div>
+            <div class="score-mini">
+                <div class="score-mini-label">消行</div>
+                <div class="score-mini-value" id="lines-m">0</div>
+            </div>
         </div>
-        <div class="preview-box">
-            <div class="preview-label">下一个</div>
-            <div class="preview-grid" id="next-preview-m"></div>
-        </div>
-    </div>
-    
-    <div class="score-row">
-        <div class="score-mini">
-            <div class="score-mini-label">得分</div>
-            <div class="score-mini-value" id="score-m">0</div>
-        </div>
-        <div class="score-mini">
-            <div class="score-mini-label">等级</div>
-            <div class="score-mini-value" id="level-m">1</div>
-        </div>
-        <div class="score-mini">
-            <div class="score-mini-label">消行</div>
-            <div class="score-mini-value" id="lines-m">0</div>
+        
+        <!-- 预览+按钮行 -->
+        <div class="preview-btn-row">
+            <div class="preview-box">
+                <div class="preview-label">保留</div>
+                <div class="preview-grid" id="hold-m"></div>
+            </div>
+            <button class="hold-btn" ontouchstart="hold()">📦 保留</button>
+            <div class="preview-box">
+                <div class="preview-label">下一个</div>
+                <div class="preview-grid" id="next-m"></div>
+            </div>
         </div>
     </div>
     
@@ -392,7 +379,7 @@
         </div>
     </div>
     
-    <!-- PC端侧边栏 -->
+    <!-- PC端 -->
     <div class="game-wrapper">
         <div class="side-panel">
             <div class="score-box">
@@ -412,11 +399,11 @@
         <div class="side-panel">
             <div class="hold-box">
                 <div class="hold-label">📦 保留</div>
-                <div class="hold-preview" id="hold-preview"></div>
+                <div class="hold-preview" id="hold"></div>
             </div>
             <div class="next-box">
                 <div class="next-label">👀 下一个</div>
-                <div class="next-preview" id="next-preview"></div>
+                <div class="next-preview" id="next"></div>
             </div>
             <div class="controls">
                 <button class="btn btn-hold" onclick="hold()">保留 (H)</button>
@@ -424,11 +411,6 @@
                 <button class="btn" onclick="togglePause()">暂停</button>
             </div>
         </div>
-    </div>
-    
-    <!-- 移动端底部按钮 -->
-    <div class="bottom-area">
-        <button class="hold-btn" ontouchstart="hold()">📦 保留</button>
     </div>
     
     <div class="instructions">
@@ -469,22 +451,22 @@
             
             if (vw > 700) return 30;
             
-            // 移动端：精确计算可用空间
-            const reserved = 60;  // 标题+预览+分数+按钮
-            const availableH = vh - reserved - 15;  // 减去padding
-            const availableW = vw - 20;
+            // 移动端
+            const topHeight = 75;  // 标题+分数+预览行
+            const availableH = vh - topHeight - 15;
+            const availableW = vw - 15;
             
             const cellH = Math.floor(availableH / ROWS);
             const cellW = Math.floor(availableW / COLS);
             
-            return Math.max(14, Math.min(22, Math.min(cellH, cellW)));
+            return Math.max(16, Math.min(24, Math.min(cellH, cellW)));
         }
         
         function applySize() {
             const s = calcSize();
-            const board = document.getElementById('game-board');
-            board.style.gridTemplateColumns = `repeat(${COLS}, ${s}px)`;
-            board.style.gridTemplateRows = `repeat(${ROWS}, ${s}px)`;
+            const el = document.getElementById('game-board');
+            el.style.gridTemplateColumns = `repeat(${COLS}, ${s}px)`;
+            el.style.gridTemplateRows = `repeat(${ROWS}, ${s}px)`;
         }
         
         function initGame() {
@@ -552,8 +534,7 @@
                             const y = currentPiece.y + r;
                             const x = currentPiece.x + c;
                             if (y >= 0 && y < ROWS && x >= 0 && x < COLS) {
-                                const cell = document.getElementById(`c-${y}-${x}`);
-                                cell.className = 'cell filled ' + currentPiece.color;
+                                document.getElementById(`c-${y}-${x}`).className = 'cell filled ' + currentPiece.color;
                             }
                         }
                     }
@@ -576,13 +557,13 @@
         }
         
         function renderNext() {
-            renderPreview('next-preview', nextPiece);
-            renderPreview('next-preview-m', nextPiece);
+            renderPreview('next', nextPiece);
+            renderPreview('next-m', nextPiece);
         }
         
         function renderHold() {
-            renderPreview('hold-preview', holdPiece);
-            renderPreview('hold-preview-m', holdPiece);
+            renderPreview('hold', holdPiece);
+            renderPreview('hold-m', holdPiece);
         }
         
         function drop() {
@@ -699,13 +680,10 @@
             const ns = [];
             for (let r = 0; r < sz; r++) {
                 ns[r] = [];
-                for (let c = 0; c < sz; c++) {
-                    ns[r][c] = s[sz-1-c][r];
-                }
+                for (let c = 0; c < sz; c++) ns[r][c] = s[sz-1-c][r];
             }
-            if (canMove(0, 0, ns)) {
-                currentPiece.shape = ns;
-            } else {
+            if (canMove(0, 0, ns)) currentPiece.shape = ns;
+            else {
                 for (let o of [-1, 1, -2, 2]) {
                     if (canMove(o, 0, ns)) {
                         currentPiece.x += o;
@@ -719,10 +697,7 @@
         
         function hardDrop() {
             if (gameOver || paused) return;
-            while (canMove(0, 1)) {
-                currentPiece.y++;
-                score += 2;
-            }
+            while (canMove(0, 1)) { currentPiece.y++; score += 2; }
             updateDisplay();
             drop();
         }
@@ -779,16 +754,11 @@
             const dx = e.changedTouches[0].clientX - tx;
             const dy = e.changedTouches[0].clientY - ty;
             const min = 30;
-            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > min) {
-                move(dx > 0 ? 'right' : 'left');
-            } else if (dy > min) {
-                hardDrop();
-            } else if (dy < -min) {
-                rotate();
-            }
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > min) move(dx > 0 ? 'right' : 'left');
+            else if (dy > min) hardDrop();
+            else if (dy < -min) rotate();
         }, {passive: true});
         
-        // 窗口变化
         window.addEventListener('resize', applySize);
         window.addEventListener('orientationchange', () => setTimeout(applySize, 100));
         

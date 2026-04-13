@@ -432,46 +432,93 @@
             applySize();
             createBoard();
             
+            // 全局变量存储长按状态
+            let longPressCell = null;
+            let longPressTimer = null;
+            
             // 添加点击事件
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
                     const cell = document.getElementById(`c-${r}-${c}`);
-                    cell.dataset.row = r;
-                    cell.dataset.col = c;
                     
-                    // 点击事件（检查是否被长按阻止）
-                    cell.addEventListener('click', function(e) {
-                        if (this.dataset.longPress === 'true') {
-                            this.dataset.longPress = 'false';
-                            e.preventDefault();
+                    // PC端：点击揭开
+                    cell.addEventListener('click', () => {
+                        // 如果是长按触发的，忽略这次 click
+                        if (longPressCell && longPressCell.r === r && longPressCell.c === c) {
+                            longPressCell = null;
                             return;
                         }
                         handleClick(r, c);
                     });
                     
-                    // 右键标记
+                    // PC端：右键标记
                     cell.addEventListener('contextmenu', e => {
                         e.preventDefault();
                         handleFlag(r, c);
                     });
-                    
-                    // 长按标记（移动端）
-                    let pressTimer;
-                    
-                    cell.addEventListener('touchstart', function(e) {
-                        this.dataset.longPress = 'false';
-                        const self = this;
-                        pressTimer = setTimeout(() => {
-                            self.dataset.longPress = 'true';
-                            handleFlag(r, c);
-                        }, 400);
-                    }, {passive: true});
-                    
-                    cell.addEventListener('touchend', function() {
-                        clearTimeout(pressTimer);
-                    }, {passive: true});
                 }
             }
+            
+            // 移动端：统一处理触摸
+            const gameBoard = document.getElementById('board');
+            
+            gameBoard.addEventListener('touchstart', e => {
+                const cell = e.target.closest('.cell');
+                if (!cell || cell.classList.contains('revealed')) return;
+                
+                const id = cell.id;
+                const match = id.match(/c-(\d+)-(\d+)/);
+                if (!match) return;
+                
+                const r = parseInt(match[1]);
+                const c = parseInt(match[2]);
+                
+                // 开始长按计时
+                longPressCell = null;
+                longPressTimer = setTimeout(() => {
+                    longPressCell = {r, c};
+                    handleFlag(r, c);
+                    // 添加视觉反馈
+                    cell.style.transform = 'scale(0.9)';
+                }, 400);
+            }, {passive: true});
+            
+            gameBoard.addEventListener('touchend', e => {
+                // 清除长按计时
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+                
+                // 如果长按已执行，不做任何事（click 会检查 longPressCell）
+                if (longPressCell) {
+                    // 清除视觉反馈
+                    const cell = e.target.closest('.cell');
+                    if (cell) cell.style.transform = '';
+                    return;
+                }
+                
+                // 否则，短按 = 点击揭开
+                const cell = e.target.closest('.cell');
+                if (!cell || cell.classList.contains('revealed')) return;
+                
+                const id = cell.id;
+                const match = id.match(/c-(\d+)-(\d+)/);
+                if (!match) return;
+                
+                const r = parseInt(match[1]);
+                const c = parseInt(match[2]);
+                handleClick(r, c);
+            }, {passive: true});
+            
+            // 阻止长按后的 click 事件
+            gameBoard.addEventListener('click', e => {
+                if (longPressCell) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, true); // 使用 capture 模式
+        }
         }
         
         function placeMines(safeR, safeC) {

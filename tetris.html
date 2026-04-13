@@ -21,6 +21,11 @@
             --accent: #e94560;
         }
         
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             background: linear-gradient(135deg, #1a1a2e, #16213e);
@@ -28,64 +33,89 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 15px;
-            min-height: 100vh;
+            padding: 10px;
+            height: 100vh;
             touch-action: none;
             user-select: none;
-            overflow: hidden;
         }
         
         h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 20px;
+            margin-bottom: 5px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
         
-        /* 预览区域容器 - 移动端放在游戏板上方 */
-        .preview-container {
+        /* 预览区域 */
+        .top-area {
             display: none;
-            gap: 12px;
+            flex-direction: row;
             justify-content: center;
-            margin-bottom: 8px;
+            align-items: center;
+            gap: 8px;
             width: 100%;
-            max-width: 300px;
+            flex-shrink: 0;
         }
         
         .preview-box {
             background: var(--btn-bg);
-            padding: 10px;
-            border-radius: 8px;
+            padding: 5px 8px;
+            border-radius: 6px;
             text-align: center;
-            flex: 1;
         }
         
         .preview-label {
             color: var(--accent);
-            font-size: 12px;
+            font-size: 10px;
             font-weight: bold;
-            margin-bottom: 6px;
+            margin-bottom: 3px;
         }
         
         .preview-grid {
-            width: 50px;
-            height: 50px;
+            width: 36px;
+            height: 36px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(4, 1fr);
             gap: 1px;
             background: rgba(0,0,0,0.3);
-            border-radius: 4px;
-            padding: 3px;
-            margin: 0 auto;
+            border-radius: 3px;
+            padding: 2px;
         }
         
         .preview-cell {
-            border-radius: 2px;
+            border-radius: 1px;
             background: rgba(255,255,255,0.1);
         }
         
         .preview-cell.filled {
-            box-shadow: inset 0 0 3px rgba(255,255,255,0.3);
+            box-shadow: inset 0 0 2px rgba(255,255,255,0.3);
+        }
+        
+        /* 分数栏 */
+        .score-row {
+            display: none;
+            flex-direction: row;
+            justify-content: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        
+        .score-mini {
+            background: var(--btn-bg);
+            padding: 4px 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .score-mini-label {
+            color: #aaa;
+            font-size: 9px;
+        }
+        
+        .score-mini-value {
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
         }
         
         /* 方块颜色 */
@@ -136,9 +166,7 @@
             text-align: center;
         }
         
-        .hold-box {
-            border: 2px solid var(--accent);
-        }
+        .hold-box { border: 2px solid var(--accent); }
         
         .next-label, .hold-label {
             color: var(--accent);
@@ -173,23 +201,27 @@
             padding: 12px 20px;
             font-size: 14px;
             cursor: pointer;
-            transition: all 0.2s;
         }
         
-        .btn:hover {
-            background: #1a4a7a;
-        }
+        .btn:hover { background: #1a4a7a; }
+        .btn-hold { background: var(--accent); }
         
-        .btn-hold {
-            background: var(--accent);
+        /* 游戏容器 */
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;  /* 关键：允许flex收缩 */
         }
         
         .game-container {
             background: var(--board-bg);
-            border-radius: 10px;
-            padding: 10px;
+            border-radius: 8px;
+            padding: 5px;
             position: relative;
-            border: 3px solid #0f3460;
+            border: 2px solid #0f3460;
         }
         
         .game-board {
@@ -204,21 +236,18 @@
         }
         
         .cell.filled {
-            box-shadow: inset 0 0 5px rgba(255,255,255,0.3);
+            box-shadow: inset 0 0 3px rgba(255,255,255,0.3);
         }
         
         .game-message {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(26, 26, 46, 0.9);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            border-radius: 10px;
+            border-radius: 8px;
             z-index: 100;
             opacity: 0;
             pointer-events: none;
@@ -230,9 +259,32 @@
         }
         
         .game-message p {
-            font-size: 36px;
+            font-size: 24px;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+        }
+        
+        /* 底部按钮 */
+        .bottom-area {
+            display: none;
+            flex-shrink: 0;
+            padding-top: 5px;
+        }
+        
+        .hold-btn {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(233, 69, 96, 0.4);
+        }
+        
+        .hold-btn:active {
+            transform: scale(0.95);
         }
         
         .instructions {
@@ -242,124 +294,105 @@
             text-align: center;
         }
         
-        /* 移动端：只保留一个按钮 */
-        .mobile-hold-btn {
-            display: none;
-            background: linear-gradient(135deg, #e94560, #ff6b6b);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 15px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(233, 69, 96, 0.4);
-        }
-        
-        .mobile-hold-btn:active {
-            transform: scale(0.95);
-        }
-        
-        /* 移动端适配 */
+        /* 移动端 */
         @media (max-width: 700px) {
             body {
-                padding: 8px;
-                min-height: 100vh;
-                justify-content: flex-start;
-                overflow: hidden;
+                padding: 5px;
+                height: 100vh;
+                height: 100dvh;  /* 动态视口高度 */
             }
             
             h1 {
-                font-size: 16px;
-                margin-bottom: 5px;
+                font-size: 14px;
+                margin-bottom: 3px;
+                flex-shrink: 0;
             }
             
-            /* 预览区域 */
-            .preview-container {
+            .top-area {
                 display: flex;
+                margin-bottom: 3px;
             }
             
-            .preview-label {
-                font-size: 11px;
-            }
-            
-            .preview-grid {
-                width: 45px;
-                height: 45px;
-            }
-            
-            /* 分数栏 */
-            .score-bar {
+            .score-row {
                 display: flex;
-                gap: 8px;
-                justify-content: center;
-                margin-bottom: 5px;
+                margin-bottom: 3px;
             }
             
             .game-wrapper {
                 flex-direction: column;
-                align-items: center;
-                gap: 5px;
-            }
-            
-            /* 隐藏侧边栏 */
-            .side-panel .next-box,
-            .side-panel .hold-box,
-            .side-panel .controls {
-                display: none;
+                gap: 0;
             }
             
             .side-panel {
-                flex-direction: row;
-                justify-content: center;
-                gap: 8px;
+                display: none;
             }
             
-            .score-box {
-                min-width: 60px;
-                padding: 6px 10px;
-            }
-            
-            .score-value {
-                font-size: 14px;
-            }
-            
-            .score-label {
-                font-size: 9px;
+            .game-area {
+                flex: 1;
+                min-height: 0;
+                width: 100%;
             }
             
             .game-container {
-                padding: 5px;
-                border-width: 2px;
+                padding: 3px;
+                border-width: 1px;
             }
             
-            /* 只显示保留按钮 */
-            .mobile-hold-btn {
+            .bottom-area {
                 display: block;
             }
             
-            .instructions {
-                display: none;
+            .hold-btn {
+                padding: 10px 20px;
+                font-size: 12px;
             }
+            
+            .instructions { display: none; }
         }
     </style>
 </head>
 <body>
     <h1>🧱 俄罗斯方块</h1>
     
-    <!-- 移动端预览区域 -->
-    <div class="preview-container">
+    <!-- 移动端顶部：预览+分数 -->
+    <div class="top-area">
         <div class="preview-box">
-            <div class="preview-label">📦 保留</div>
-            <div class="preview-grid" id="hold-preview-mobile"></div>
+            <div class="preview-label">保留</div>
+            <div class="preview-grid" id="hold-preview-m"></div>
         </div>
         <div class="preview-box">
-            <div class="preview-label">👀 下一个</div>
-            <div class="preview-grid" id="next-preview-mobile"></div>
+            <div class="preview-label">下一个</div>
+            <div class="preview-grid" id="next-preview-m"></div>
         </div>
     </div>
     
+    <div class="score-row">
+        <div class="score-mini">
+            <div class="score-mini-label">得分</div>
+            <div class="score-mini-value" id="score-m">0</div>
+        </div>
+        <div class="score-mini">
+            <div class="score-mini-label">等级</div>
+            <div class="score-mini-value" id="level-m">1</div>
+        </div>
+        <div class="score-mini">
+            <div class="score-mini-label">消行</div>
+            <div class="score-mini-value" id="lines-m">0</div>
+        </div>
+    </div>
+    
+    <!-- 游戏区域 -->
+    <div class="game-area">
+        <div class="game-container">
+            <div class="game-board" id="game-board"></div>
+            <div class="game-message" id="game-message">
+                <p id="message-text">游戏结束!</p>
+                <button class="btn" onclick="initGame()">再来一局</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PC端侧边栏 -->
     <div class="game-wrapper">
         <div class="side-panel">
             <div class="score-box">
@@ -373,14 +406,6 @@
             <div class="score-box">
                 <div class="score-label">消行</div>
                 <div class="score-value" id="lines">0</div>
-            </div>
-        </div>
-        
-        <div class="game-container">
-            <div class="game-board" id="game-board"></div>
-            <div class="game-message" id="game-message">
-                <p id="message-text">游戏结束!</p>
-                <button class="btn" onclick="initGame()">再来一局</button>
             </div>
         </div>
         
@@ -401,11 +426,13 @@
         </div>
     </div>
     
-    <!-- 移动端：只保留按钮 -->
-    <button class="mobile-hold-btn" ontouchstart="hold()">📦 保留方块</button>
+    <!-- 移动端底部按钮 -->
+    <div class="bottom-area">
+        <button class="hold-btn" ontouchstart="hold()">📦 保留</button>
+    </div>
     
     <div class="instructions">
-        方向键/WASD 移动 | ↑/W 旋转 | 空格 快速下落 | H 保留 | P 暂停
+        方向键/WASD 移动 | ↑/W 旋转 | 空格 下落 | H 保留 | P 暂停
     </div>
 
     <script>
@@ -423,53 +450,41 @@
         let canHold = true;
         let dropInterval = null;
         let dropSpeed = 500;
-        let cellSize = 30;  // 动态计算
         
-        // 方块形状定义
         const PIECES = {
-            I: { shape: [[0,0,0,0], [1,1,1,1], [0,0,0,0], [0,0,0,0]], color: 'I' },
-            O: { shape: [[1,1], [1,1]], color: 'O' },
-            T: { shape: [[0,1,0], [1,1,1], [0,0,0]], color: 'T' },
-            S: { shape: [[0,1,1], [1,1,0], [0,0,0]], color: 'S' },
-            Z: { shape: [[1,1,0], [0,1,1], [0,0,0]], color: 'Z' },
-            J: { shape: [[1,0,0], [1,1,1], [0,0,0]], color: 'J' },
-            L: { shape: [[0,0,1], [1,1,1], [0,0,0]], color: 'L' }
+            I: { shape: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color: 'I' },
+            O: { shape: [[1,1],[1,1]], color: 'O' },
+            T: { shape: [[0,1,0],[1,1,1],[0,0,0]], color: 'T' },
+            S: { shape: [[0,1,1],[1,1,0],[0,0,0]], color: 'S' },
+            Z: { shape: [[1,1,0],[0,1,1],[0,0,0]], color: 'Z' },
+            J: { shape: [[1,0,0],[1,1,1],[0,0,0]], color: 'J' },
+            L: { shape: [[0,0,1],[1,1,1],[0,0,0]], color: 'L' }
         };
         
-        const pieceNames = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
+        const pieceNames = ['I','O','T','S','Z','J','L'];
         
-        // 动态计算格子大小
-        function calculateCellSize() {
+        function calcSize() {
             const vw = window.innerWidth;
-            const vh = window.innerHeight;
+            const vh = window.innerHeight || window.visualViewport?.height || 600;
             
-            // 移动端
-            if (vw <= 700) {
-                // 宽度方向：游戏板占满屏幕宽度（减去padding和border）
-                const maxWidth = vw - 20;  // body padding + container padding/border
-                const widthCell = Math.floor(maxWidth / COLS);
-                
-                // 高度方向：预留顶部标题、预览、分数和底部按钮的空间
-                const reservedHeight = 150;  // 标题+预览+分数+按钮
-                const maxHeight = vh - reservedHeight - 20;
-                const heightCell = Math.floor(maxHeight / ROWS);
-                
-                // 取较小的值，确保完整显示
-                cellSize = Math.min(widthCell, heightCell);
-                cellSize = Math.max(cellSize, 12);  // 最小12px
-                cellSize = Math.min(cellSize, 25);  // 最大25px
-            } else {
-                cellSize = 30;
-            }
+            if (vw > 700) return 30;
             
-            return cellSize;
+            // 移动端：精确计算可用空间
+            const reserved = 60;  // 标题+预览+分数+按钮
+            const availableH = vh - reserved - 15;  // 减去padding
+            const availableW = vw - 20;
+            
+            const cellH = Math.floor(availableH / ROWS);
+            const cellW = Math.floor(availableW / COLS);
+            
+            return Math.max(14, Math.min(22, Math.min(cellH, cellW)));
         }
         
-        function applyCellSize() {
-            const size = calculateCellSize();
+        function applySize() {
+            const s = calcSize();
             const board = document.getElementById('game-board');
-            board.style.gridTemplateColumns = `repeat(${COLS}, ${size}px)`;
-            board.style.gridTemplateRows = `repeat(${ROWS}, ${size}px)`;
+            board.style.gridTemplateColumns = `repeat(${COLS}, ${s}px)`;
+            board.style.gridTemplateRows = `repeat(${ROWS}, ${s}px)`;
         }
         
         function initGame() {
@@ -485,40 +500,39 @@
             
             updateDisplay();
             hideMessage();
-            applyCellSize();
+            applySize();
             createBoard();
             
             currentPiece = createPiece();
             nextPiece = createPiece();
-            renderHoldPiece();
-            renderNextPiece();
+            renderHold();
+            renderNext();
             
             if (dropInterval) clearInterval(dropInterval);
             dropInterval = setInterval(drop, dropSpeed);
-            
             render();
         }
         
         function createBoard() {
-            const boardEl = document.getElementById('game-board');
-            boardEl.innerHTML = '';
+            const el = document.getElementById('game-board');
+            el.innerHTML = '';
             for (let r = 0; r < ROWS; r++) {
                 for (let c = 0; c < COLS; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
-                    cell.id = `cell-${r}-${c}`;
-                    boardEl.appendChild(cell);
+                    cell.id = `c-${r}-${c}`;
+                    el.appendChild(cell);
                 }
             }
         }
         
         function createPiece() {
-            const name = pieceNames[Math.floor(Math.random() * pieceNames.length)];
-            const piece = PIECES[name];
+            const n = pieceNames[Math.floor(Math.random() * pieceNames.length)];
+            const p = PIECES[n];
             return {
-                shape: piece.shape.map(row => [...row]),
-                color: piece.color,
-                x: Math.floor(COLS / 2) - Math.ceil(piece.shape[0].length / 2),
+                shape: p.shape.map(r => [...r]),
+                color: p.color,
+                x: Math.floor(COLS/2) - Math.ceil(p.shape[0].length/2),
                 y: 0
             };
         }
@@ -526,24 +540,20 @@
         function render() {
             for (let r = 0; r < ROWS; r++) {
                 for (let c = 0; c < COLS; c++) {
-                    const cell = document.getElementById(`cell-${r}-${c}`);
-                    cell.className = 'cell';
-                    if (board[r][c]) {
-                        cell.classList.add('filled', board[r][c]);
-                    }
+                    const cell = document.getElementById(`c-${r}-${c}`);
+                    cell.className = 'cell' + (board[r][c] ? ' filled ' + board[r][c] : '');
                 }
             }
             
             if (currentPiece) {
-                const shape = currentPiece.shape;
-                for (let r = 0; r < shape.length; r++) {
-                    for (let c = 0; c < shape[r].length; c++) {
-                        if (shape[r][c]) {
-                            const boardY = currentPiece.y + r;
-                            const boardX = currentPiece.x + c;
-                            if (boardY >= 0 && boardY < ROWS && boardX >= 0 && boardX < COLS) {
-                                const cell = document.getElementById(`cell-${boardY}-${boardX}`);
-                                cell.classList.add('filled', currentPiece.color);
+                for (let r = 0; r < currentPiece.shape.length; r++) {
+                    for (let c = 0; c < currentPiece.shape[r].length; c++) {
+                        if (currentPiece.shape[r][c]) {
+                            const y = currentPiece.y + r;
+                            const x = currentPiece.x + c;
+                            if (y >= 0 && y < ROWS && x >= 0 && x < COLS) {
+                                const cell = document.getElementById(`c-${y}-${x}`);
+                                cell.className = 'cell filled ' + currentPiece.color;
                             }
                         }
                     }
@@ -551,49 +561,43 @@
             }
         }
         
-        function renderPreviewGrid(containerId, piece) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            
-            container.innerHTML = '';
+        function renderPreview(id, piece) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = '';
             for (let r = 0; r < 4; r++) {
                 for (let c = 0; c < 4; c++) {
                     const cell = document.createElement('div');
-                    cell.className = 'preview-cell';
-                    if (piece && piece.shape[r] && piece.shape[r][c]) {
-                        cell.classList.add('filled', piece.color);
-                    }
-                    container.appendChild(cell);
+                    cell.className = 'preview-cell' + 
+                        (piece && piece.shape[r] && piece.shape[r][c] ? ' filled ' + piece.color : '');
+                    el.appendChild(cell);
                 }
             }
         }
         
-        function renderNextPiece() {
-            renderPreviewGrid('next-preview', nextPiece);
-            renderPreviewGrid('next-preview-mobile', nextPiece);
+        function renderNext() {
+            renderPreview('next-preview', nextPiece);
+            renderPreview('next-preview-m', nextPiece);
         }
         
-        function renderHoldPiece() {
-            renderPreviewGrid('hold-preview', holdPiece);
-            renderPreviewGrid('hold-preview-mobile', holdPiece);
+        function renderHold() {
+            renderPreview('hold-preview', holdPiece);
+            renderPreview('hold-preview-m', holdPiece);
         }
         
         function drop() {
             if (gameOver || paused) return;
-            
             if (!canMove(0, 1)) {
-                lockPiece();
-                clearLines();
-                
+                lock();
+                clear();
                 currentPiece = nextPiece;
                 nextPiece = createPiece();
                 canHold = true;
-                renderNextPiece();
-                
+                renderNext();
                 if (!canMove(0, 0)) {
                     gameOver = true;
                     clearInterval(dropInterval);
-                    showMessage('游戏结束!');
+                    showMsg('游戏结束!');
                 }
             } else {
                 currentPiece.y++;
@@ -601,97 +605,86 @@
             render();
         }
         
-        function canMove(dx, dy, newShape = null) {
-            const shape = newShape || currentPiece.shape;
-            for (let r = 0; r < shape.length; r++) {
-                for (let c = 0; c < shape[r].length; c++) {
-                    if (shape[r][c]) {
-                        const newX = currentPiece.x + c + dx;
-                        const newY = currentPiece.y + r + dy;
-                        
-                        if (newX < 0 || newX >= COLS || newY >= ROWS) return false;
-                        if (newY >= 0 && board[newY][newX]) return false;
+        function canMove(dx, dy, shape = null) {
+            const s = shape || currentPiece.shape;
+            for (let r = 0; r < s.length; r++) {
+                for (let c = 0; c < s[r].length; c++) {
+                    if (s[r][c]) {
+                        const x = currentPiece.x + c + dx;
+                        const y = currentPiece.y + r + dy;
+                        if (x < 0 || x >= COLS || y >= ROWS) return false;
+                        if (y >= 0 && board[y][x]) return false;
                     }
                 }
             }
             return true;
         }
         
-        function lockPiece() {
-            const shape = currentPiece.shape;
-            for (let r = 0; r < shape.length; r++) {
-                for (let c = 0; c < shape[r].length; c++) {
-                    if (shape[r][c]) {
-                        const boardY = currentPiece.y + r;
-                        const boardX = currentPiece.x + c;
-                        if (boardY >= 0) board[boardY][boardX] = currentPiece.color;
+        function lock() {
+            for (let r = 0; r < currentPiece.shape.length; r++) {
+                for (let c = 0; c < currentPiece.shape[r].length; c++) {
+                    if (currentPiece.shape[r][c]) {
+                        const y = currentPiece.y + r;
+                        const x = currentPiece.x + c;
+                        if (y >= 0) board[y][x] = currentPiece.color;
                     }
                 }
             }
         }
         
-        function clearLines() {
-            let cleared = 0;
+        function clear() {
+            let c = 0;
             for (let r = ROWS - 1; r >= 0; r--) {
-                if (board[r].every(cell => cell !== null)) {
+                if (board[r].every(x => x !== null)) {
                     board.splice(r, 1);
                     board.unshift(Array(COLS).fill(null));
-                    cleared++;
+                    c++;
                     r++;
                 }
             }
-            
-            if (cleared > 0) {
-                const points = [0, 100, 300, 500, 800];
-                score += points[cleared] * level;
-                lines += cleared;
-                
+            if (c > 0) {
+                const pts = [0, 100, 300, 500, 800];
+                score += pts[c] * level;
+                lines += c;
                 level = Math.floor(lines / 10) + 1;
-                dropSpeed = Math.max(100, 500 - (level - 1) * 50);
-                
+                dropSpeed = Math.max(100, 500 - (level-1) * 50);
                 clearInterval(dropInterval);
                 dropInterval = setInterval(drop, dropSpeed);
-                
                 updateDisplay();
             }
         }
         
         function hold() {
             if (gameOver || paused || !canHold) return;
-            
             canHold = false;
-            
-            if (holdPiece === null) {
+            if (!holdPiece) {
                 holdPiece = {
-                    shape: PIECES[currentPiece.color].shape.map(row => [...row]),
+                    shape: PIECES[currentPiece.color].shape.map(r => [...r]),
                     color: currentPiece.color,
-                    x: Math.floor(COLS / 2) - Math.ceil(PIECES[currentPiece.color].shape[0].length / 2),
+                    x: Math.floor(COLS/2) - Math.ceil(PIECES[currentPiece.color].shape[0].length/2),
                     y: 0
                 };
                 currentPiece = nextPiece;
                 nextPiece = createPiece();
             } else {
-                const temp = {
-                    shape: PIECES[currentPiece.color].shape.map(row => [...row]),
+                const t = {
+                    shape: PIECES[currentPiece.color].shape.map(r => [...r]),
                     color: currentPiece.color,
-                    x: Math.floor(COLS / 2) - Math.ceil(PIECES[currentPiece.color].shape[0].length / 2),
+                    x: Math.floor(COLS/2) - Math.ceil(PIECES[currentPiece.color].shape[0].length/2),
                     y: 0
                 };
                 currentPiece = holdPiece;
-                holdPiece = temp;
+                holdPiece = t;
             }
-            
-            renderHoldPiece();
-            renderNextPiece();
+            renderHold();
+            renderNext();
             render();
         }
         
-        function move(direction) {
+        function move(dir) {
             if (gameOver || paused) return;
-            
-            const dx = direction === 'left' ? -1 : direction === 'right' ? 1 : 0;
-            const dy = direction === 'down' ? 1 : 0;
-            
+            const dx = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
+            const dy = dir === 'down' ? 1 : 0;
             if (canMove(dx, dy)) {
                 currentPiece.x += dx;
                 currentPiece.y += dy;
@@ -701,36 +694,31 @@
         
         function rotate() {
             if (gameOver || paused) return;
-            
-            const shape = currentPiece.shape;
-            const size = shape.length;
-            const newShape = [];
-            
-            for (let r = 0; r < size; r++) {
-                newShape[r] = [];
-                for (let c = 0; c < size; c++) {
-                    newShape[r][c] = shape[size - 1 - c][r];
+            const s = currentPiece.shape;
+            const sz = s.length;
+            const ns = [];
+            for (let r = 0; r < sz; r++) {
+                ns[r] = [];
+                for (let c = 0; c < sz; c++) {
+                    ns[r][c] = s[sz-1-c][r];
                 }
             }
-            
-            if (canMove(0, 0, newShape)) {
-                currentPiece.shape = newShape;
-                render();
+            if (canMove(0, 0, ns)) {
+                currentPiece.shape = ns;
             } else {
-                for (let offset of [-1, 1, -2, 2]) {
-                    if (canMove(offset, 0, newShape)) {
-                        currentPiece.x += offset;
-                        currentPiece.shape = newShape;
-                        render();
+                for (let o of [-1, 1, -2, 2]) {
+                    if (canMove(o, 0, ns)) {
+                        currentPiece.x += o;
+                        currentPiece.shape = ns;
                         break;
                     }
                 }
             }
+            render();
         }
         
         function hardDrop() {
             if (gameOver || paused) return;
-            
             while (canMove(0, 1)) {
                 currentPiece.y++;
                 score += 2;
@@ -741,23 +729,24 @@
         
         function togglePause() {
             if (gameOver) return;
-            
             paused = !paused;
-            if (paused) {
-                showMessage('暂停');
-            } else {
-                hideMessage();
-            }
+            paused ? showMsg('暂停') : hideMessage();
         }
         
         function updateDisplay() {
             document.getElementById('score').textContent = score;
             document.getElementById('level').textContent = level;
             document.getElementById('lines').textContent = lines;
+            const sm = document.getElementById('score-m');
+            const lm = document.getElementById('level-m');
+            const lnm = document.getElementById('lines-m');
+            if (sm) sm.textContent = score;
+            if (lm) lm.textContent = level;
+            if (lnm) lnm.textContent = lines;
         }
         
-        function showMessage(text) {
-            document.getElementById('message-text').textContent = text;
+        function showMsg(t) {
+            document.getElementById('message-text').textContent = t;
             document.getElementById('game-message').classList.add('visible');
         }
         
@@ -765,47 +754,43 @@
             document.getElementById('game-message').classList.remove('visible');
         }
         
-        // 键盘控制
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); move('left'); }
-            else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); move('right'); }
-            else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') { e.preventDefault(); move('down'); }
-            else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { e.preventDefault(); rotate(); }
-            else if (e.key === ' ') { e.preventDefault(); hardDrop(); }
-            else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); hold(); }
-            else if (e.key === 'p' || e.key === 'P') { e.preventDefault(); togglePause(); }
+        // 键盘
+        document.addEventListener('keydown', e => {
+            const k = e.key;
+            if (k === 'ArrowLeft' || k === 'a') { e.preventDefault(); move('left'); }
+            else if (k === 'ArrowRight' || k === 'd') { e.preventDefault(); move('right'); }
+            else if (k === 'ArrowDown' || k === 's') { e.preventDefault(); move('down'); }
+            else if (k === 'ArrowUp' || k === 'w') { e.preventDefault(); rotate(); }
+            else if (k === ' ') { e.preventDefault(); hardDrop(); }
+            else if (k === 'h' || k === 'H') { e.preventDefault(); hold(); }
+            else if (k === 'p' || k === 'P') { e.preventDefault(); togglePause(); }
         });
         
-        // 滑动控制
-        let touchStartX = 0;
-        let touchStartY = 0;
-        
-        document.addEventListener('touchstart', (e) => {
-            if (e.target.closest('.mobile-hold-btn')) return;
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
+        // 滑动
+        let tx = 0, ty = 0;
+        document.addEventListener('touchstart', e => {
+            if (e.target.closest('.hold-btn')) return;
+            tx = e.touches[0].clientX;
+            ty = e.touches[0].clientY;
         }, {passive: true});
         
-        document.addEventListener('touchend', (e) => {
-            if (e.target.closest('.mobile-hold-btn')) return;
-            
-            const dx = e.changedTouches[0].clientX - touchStartX;
-            const dy = e.changedTouches[0].clientY - touchStartY;
-            const minSwipe = 30;
-            
-            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minSwipe) {
+        document.addEventListener('touchend', e => {
+            if (e.target.closest('.hold-btn')) return;
+            const dx = e.changedTouches[0].clientX - tx;
+            const dy = e.changedTouches[0].clientY - ty;
+            const min = 30;
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > min) {
                 move(dx > 0 ? 'right' : 'left');
-            } else if (dy > minSwipe) {
+            } else if (dy > min) {
                 hardDrop();
-            } else if (dy < -minSwipe) {
+            } else if (dy < -min) {
                 rotate();
             }
         }, {passive: true});
         
-        // 窗口大小改变时重新计算
-        window.addEventListener('resize', () => {
-            applyCellSize();
-        });
+        // 窗口变化
+        window.addEventListener('resize', applySize);
+        window.addEventListener('orientationchange', () => setTimeout(applySize, 100));
         
         initGame();
     </script>

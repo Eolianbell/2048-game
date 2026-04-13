@@ -754,7 +754,8 @@
             if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minSwipe) {
                 move(dx > 0 ? 'right' : 'left');
             } else if (dy > minSwipe) {
-                move('down');
+                // 向下滑动：直接下落到底
+                hardDrop();
             } else if (dy < -minSwipe) {
                 rotate();
             }

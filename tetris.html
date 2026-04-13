@@ -142,6 +142,21 @@
             transform: scale(0.95);
         }
         
+        .back-btn {
+            background: #666;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+        
         /* 方块颜色 */
         .preview-cell.I, .cell.I { background: linear-gradient(135deg, #00f5ff, #00bcd4); }
         .preview-cell.O, .cell.O { background: linear-gradient(135deg, #ffeb3b, #ffc107); }
@@ -361,6 +376,7 @@
                 <div class="preview-grid" id="hold-m"></div>
             </div>
             <button class="hold-btn" ontouchstart="hold()">📦 保留</button>
+            <button class="back-btn" onclick="window.location.href='index.html'">返回</button>
             <div class="preview-box">
                 <div class="preview-label">下一个</div>
                 <div class="preview-grid" id="next-m"></div>
@@ -409,6 +425,7 @@
                 <button class="btn btn-hold" onclick="hold()">保留 (H)</button>
                 <button class="btn" onclick="initGame()">新游戏</button>
                 <button class="btn" onclick="togglePause()">暂停</button>
+                <button class="btn" onclick="window.location.href='index.html'">返回</button>
             </div>
         </div>
     </div>

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2048</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="shortcut icon" href="favicon.svg" type="image/svg+xml">
     <style>
         * {
             margin: 0;
@@ -221,10 +223,9 @@
             border-radius: 10px;
             padding: 10px;
             position: relative;
-            touch-action: none; /* 禁用所有默认触摸动作 */
+            touch-action: none;
             transition: background 0.3s ease;
-            user-select: none; /* 防止选中文本 */
-            -webkit-user-select: none;
+            max-width: 100%;
         }
         
         .grid-container {
@@ -234,13 +235,7 @@
             gap: var(--gap-size);
         }
         
-        /* 根据网格大小动态调整单元格尺寸 */
-        /* 3x3 - 可以大一点 */
-        body[data-grid="3"] .grid-container {
-            --cell-size: min(100px, calc((100vh - 280px) / 3));
-            --gap-size: 12px;
-        }
-        
+        /* 根据网格大小动态调整单元格尺寸 - 让所有网格都能完整显示 */
         /* 4x4 - 默认大小 */
         body[data-grid="4"] .grid-container {
             --cell-size: min(80px, calc((100vh - 280px) / 4));
@@ -259,27 +254,43 @@
             --gap-size: 6px;
         }
         
-        .grid-cell {
-            background: var(--cell-bg);
-            border-radius: 6px;
+        /* 3x3 - 可以大一点 */
+        body[data-grid="3"] .grid-container {
+            --cell-size: min(90px, calc((100vh - 280px) / 3));
+            --gap-size: 12px;
         }
         
-        .tile {
-            position: absolute;
+        .grid-cell {
+            background: var(--cell-bg);
             border-radius: 6px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
+            font-size: 35px;
             transition: all 0.15s ease;
-            z-index: 10;
+            position: relative;
         }
         
-        .tile-new {
+        /* 数字单元格样式 - 经典主题 */
+        .grid-cell.cell-2 { background: #eee4da; color: #776e65; }
+        .grid-cell.cell-4 { background: #ede0c8; color: #776e65; }
+        .grid-cell.cell-8 { background: #f2b179; color: #f9f6f2; }
+        .grid-cell.cell-16 { background: #f59563; color: #f9f6f2; }
+        .grid-cell.cell-32 { background: #f67c5f; color: #f9f6f2; }
+        .grid-cell.cell-64 { background: #f65e3b; color: #f9f6f2; }
+        .grid-cell.cell-128 { background: #edcf72; color: #f9f6f2; font-size: 30px; }
+        .grid-cell.cell-256 { background: #edcc61; color: #f9f6f2; font-size: 30px; }
+        .grid-cell.cell-512 { background: #edc850; color: #f9f6f2; font-size: 30px; }
+        .grid-cell.cell-1024 { background: #edc53f; color: #f9f6f2; font-size: 25px; }
+        .grid-cell.cell-2048 { background: #edc22e; color: #f9f6f2; font-size: 25px; }
+        .grid-cell.cell-super { background: #3c3a32; color: #f9f6f2; font-size: 20px; }
+        
+        .grid-cell.cell-new {
             animation: appear 0.2s ease;
         }
         
-        .tile-merged {
+        .grid-cell.cell-merged {
             animation: pop 0.2s ease;
         }
         
@@ -293,20 +304,6 @@
             50% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
-        
-        /* Tile 颜色 - 经典主题 */
-        .tile-2 { background: #eee4da; color: #776e65; }
-        .tile-4 { background: #ede0c8; color: #776e65; }
-        .tile-8 { background: #f2b179; color: #f9f6f2; }
-        .tile-16 { background: #f59563; color: #f9f6f2; }
-        .tile-32 { background: #f67c5f; color: #f9f6f2; }
-        .tile-64 { background: #f65e3b; color: #f9f6f2; }
-        .tile-128 { background: #edcf72; color: #f9f6f2; }
-        .tile-256 { background: #edcc61; color: #f9f6f2; }
-        .tile-512 { background: #edc850; color: #f9f6f2; }
-        .tile-1024 { background: #edc53f; color: #f9f6f2; }
-        .tile-2048 { background: #edc22e; color: #f9f6f2; }
-        .tile-super { background: #3c3a32; color: #f9f6f2; }
         
         .game-message {
             position: absolute;
@@ -359,8 +356,35 @@
             color: var(--text-color);
             font-size: 14px;
             text-align: center;
-            max-width: 500px;
-            line-height: 1.5;
+        }
+        
+        /* ========== 响应式适配 - 根据视口高度调整 ========== */
+        @media (max-height: 700px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 36px;
+                margin-bottom: 8px;
+            }
+            
+            .controls-container {
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .score-container {
+                gap: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .new-game-btn {
+                padding: 10px 20px;
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+            
         }
         
         /* ========== 移动端适配 ========== */
@@ -399,43 +423,25 @@
                 border-radius: 50%;
             }
             
-            .grid-container {
-                --cell-size: min(50px, calc((100vw - 40px - (var(--grid-size) - 1) * 6px) / var(--grid-size)));
-                --gap-size: 6px;
-                grid-template-columns: repeat(var(--grid-size), var(--cell-size));
-                grid-template-rows: repeat(var(--grid-size), var(--cell-size));
-                gap: var(--gap-size);
-            }
-            
-            /* 移动端根据格子大小调整 */
-            body[data-grid="3"] .grid-container {
-                --cell-size: min(85px, calc((100vw - 40px) / 3));
-                --gap-size: 10px;
-            }
-            
+            /* 移动端也使用 data-grid 响应式 */
             body[data-grid="4"] .grid-container {
-                --cell-size: min(65px, calc((100vw - 40px) / 4));
+                --cell-size: min(60px, calc((100vh - 250px) / 4));
                 --gap-size: 8px;
             }
             
             body[data-grid="5"] .grid-container {
-                --cell-size: min(52px, calc((100vw - 40px) / 5));
+                --cell-size: min(50px, calc((100vh - 250px) / 5));
                 --gap-size: 6px;
             }
             
             body[data-grid="6"] .grid-container {
-                --cell-size: min(44px, calc((100vw - 40px) / 6));
+                --cell-size: min(42px, calc((100vh - 250px) / 6));
                 --gap-size: 5px;
             }
             
-            .instructions {
-                font-size: 12px;
-                max-width: 100%;
-                padding: 0 10px;
-            }
-            
-            .instructions br {
-                display: none;
+            body[data-grid="3"] .grid-container {
+                --cell-size: min(70px, calc((100vh - 250px) / 3));
+                --gap-size: 10px;
             }
         }
     </style>
@@ -511,6 +517,10 @@
         gridSize = parseInt(currentDifficulty);
         const root = document.documentElement;
         root.style.setProperty('--grid-size', gridSize.toString());
+        
+        // 设置 data-grid 属性用于 CSS 响应式
+        document.body.setAttribute('data-grid', gridSize.toString());
+        
         const isMobile = window.innerWidth <= 500;
         root.style.setProperty('--gap-size', (isMobile ? 6 : 10) + 'px');
         
@@ -554,6 +564,9 @@
             // 更新 CSS 变量
             const root = document.documentElement;
             root.style.setProperty('--grid-size', gridSize.toString());
+            
+            // 设置 data-grid 属性用于 CSS 响应式
+            document.body.setAttribute('data-grid', gridSize.toString());
             
             // 直接设置 grid-container 样式，确保生效
             const gridContainer = document.getElementById('grid-container');
@@ -606,58 +619,30 @@
             return null;
         }
 
-        function getCellSize() {
-            const container = document.getElementById('grid-container');
-            const cell = container.querySelector('.grid-cell');
-            return cell ? cell.getBoundingClientRect() : { width: 100, height: 100 };
-        }
-
-        function getTileSize(cellSize) {
-            // 根据网格大小动态调整字体
-            if (gridSize <= 4) return { fontSize: 35, smallFont: 25 };
-            if (gridSize === 5) return { fontSize: 28, smallFont: 20 };
-            return { fontSize: 22, smallFont: 16 };
-        }
-
         function render() {
-            const container = document.getElementById('grid-container');
-            const cellSize = getCellSize();
-            // 从 CSS 变量获取 gap
-            const computedStyle = getComputedStyle(document.documentElement);
-            const gap = parseFloat(computedStyle.getPropertyValue('--gap-size')) || 10;
-            // 获取容器的实际 padding
-            const containerStyle = getComputedStyle(container);
-            const padding = parseFloat(containerStyle.paddingLeft) || 10;
-            const tileSize = getTileSize(cellSize);
+            const cells = document.querySelectorAll('.grid-cell');
             
-            // 清除旧的 tile
-            const oldTiles = container.querySelectorAll('.tile');
-            oldTiles.forEach(tile => tile.remove());
-
-            // 渲染新的 tile
+            // 更新每个 grid-cell 的内容和样式
             for (let r = 0; r < gridSize; r++) {
                 for (let c = 0; c < gridSize; c++) {
-                    if (board[r][c] !== 0) {
-                        const tile = document.createElement('div');
-                        const value = board[r][c];
-                        let className = `tile tile-${value <= 2048 ? value : 'super'}`;
-                        tile.className = className;
-                        tile.textContent = value;
-                        tile.style.left = `${padding + c * (cellSize.width + gap)}px`;
-                        tile.style.top = `${padding + r * (cellSize.height + gap)}px`;
-                        tile.style.width = `${cellSize.width}px`;
-                        tile.style.height = `${cellSize.height}px`;
+                    const cellIndex = r * gridSize + c;
+                    const cell = cells[cellIndex];
+                    const value = board[r][c];
+                    
+                    // 清除所有样式类
+                    cell.className = 'grid-cell';
+                    cell.textContent = '';
+                    
+                    if (value !== 0) {
+                        // 设置数字
+                        cell.textContent = value;
                         
-                        // 根据数字大小和网格调整字体
-                        if (value >= 128 && value < 1024) {
-                            tile.style.fontSize = `${tileSize.smallFont + 5}px`;
-                        } else if (value >= 1024) {
-                            tile.style.fontSize = `${tileSize.smallFont}px`;
+                        // 添加对应的样式类
+                        if (value <= 2048) {
+                            cell.classList.add('cell-' + value);
                         } else {
-                            tile.style.fontSize = `${tileSize.fontSize}px`;
+                            cell.classList.add('cell-super');
                         }
-                        
-                        container.appendChild(tile);
                     }
                 }
             }
@@ -666,24 +651,10 @@
         function renderWithAnimation(newTile) {
             render();
             if (newTile) {
-                const container = document.getElementById('grid-container');
-                const cellSize = getCellSize();
-                const computedStyle = getComputedStyle(document.documentElement);
-                const gap = parseFloat(computedStyle.getPropertyValue('--gap-size')) || 10;
-                // 获取容器的实际 padding
-                const containerStyle = getComputedStyle(container);
-                const padding = parseFloat(containerStyle.paddingLeft) || 10;
-                const expectedLeft = padding + newTile.c * (cellSize.width + gap);
-                const expectedTop = padding + newTile.r * (cellSize.height + gap);
-                
-                const tiles = document.querySelectorAll('.tile');
-                tiles.forEach(tile => {
-                    const left = parseFloat(tile.style.left);
-                    const top = parseFloat(tile.style.top);
-                    if (Math.abs(left - expectedLeft) < 1 && Math.abs(top - expectedTop) < 1) {
-                        tile.classList.add('tile-new');
-                    }
-                });
+                const cells = document.querySelectorAll('.grid-cell');
+                const cellIndex = newTile.r * gridSize + newTile.c;
+                const cell = cells[cellIndex];
+                cell.classList.add('cell-new');
             }
         }
 
@@ -853,65 +824,27 @@
 
         let touchStartX = 0;
         let touchStartY = 0;
-        let touchStartTime = 0;
-        let hasMoved = false;
 
-        // 触摸开始
         document.addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
-            touchStartTime = Date.now();
-            hasMoved = false;
         }, {passive: true});
 
-        // 触摸移动（防止滚动）
-        document.addEventListener('touchmove', (e) => {
-            if (!hasMoved) {
-                const dx = e.touches[0].clientX - touchStartX;
-                const dy = e.touches[0].clientY - touchStartY;
-                // 如果滑动距离超过 10px，认为是滑动手势，阻止页面滚动
-                if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-                    hasMoved = true;
-                }
-            }
-            // 在游戏区域内阻止默认滚动
-            if (e.target.closest('.game-container')) {
-                e.preventDefault();
-            }
-        }, {passive: false});
-
-        // 触摸结束
         document.addEventListener('touchend', (e) => {
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
             
             const dx = touchEndX - touchStartX;
             const dy = touchEndY - touchStartY;
-            const deltaTime = Date.now() - touchStartTime;
             
-            // 降低滑动阈值，更灵敏
-            const minSwipe = 30;
+            const minSwipe = 50;
             
-            // 快速滑动检测（速度 > 0.5px/ms）
-            const speedX = Math.abs(dx) / deltaTime;
-            const speedY = Math.abs(dy) / deltaTime;
-            const isQuickSwipe = speedX > 0.5 || speedY > 0.5;
-            
-            // 水平滑动
-            if (Math.abs(dx) > Math.abs(dy)) {
-                if (Math.abs(dx) > minSwipe || isQuickSwipe) {
-                    e.preventDefault();
-                    move(dx > 0 ? 'right' : 'left');
-                }
-            } 
-            // 垂直滑动
-            else {
-                if (Math.abs(dy) > minSwipe || isQuickSwipe) {
-                    e.preventDefault();
-                    move(dy > 0 ? 'down' : 'up');
-                }
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minSwipe) {
+                move(dx > 0 ? 'right' : 'left');
+            } else if (Math.abs(dy) > minSwipe) {
+                move(dy > 0 ? 'down' : 'up');
             }
-        }, {passive: false});
+        }, {passive: true});
 
         initGame();
     </script>

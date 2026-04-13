@@ -227,7 +227,7 @@
     </div>
     
     <div class="instructions">
-        点击揭开 | 长按/右键 标记旗帜
+        单击揭开 | 双击/右键 标记旗帜
     </div>
 
     <script>
@@ -241,8 +241,6 @@
         let board = [], revealed = [], flagged = [];
         let gameOver = false, gameWon = false, firstClick = true;
         let timer = null, time = 0;
-        let longPress = false;
-        let pressTimer = null;
         
         function calcSize() {
             const vw = window.innerWidth;
@@ -442,15 +440,27 @@
             msg.classList.add('visible');
         }
         
+        // 双击检测
+        let lastClick = {r: -1, c: -1, time: 0};
+        
         // 事件处理
         document.getElementById('board').addEventListener('click', e => {
             const cell = e.target.closest('.cell');
             if (!cell) return;
-            if (longPress) {
-                longPress = false;
+            
+            const r = parseInt(cell.dataset.r);
+            const c = parseInt(cell.dataset.c);
+            const now = Date.now();
+            
+            // 双击检测：同一个格子，间隔小于 500ms
+            if (lastClick.r === r && lastClick.c === c && now - lastClick.time < 500) {
+                lastClick = {r: -1, c: -1, time: 0};
+                handleFlag(r, c);  // 双击 = 标记/取消标记
                 return;
             }
-            handleClick(parseInt(cell.dataset.r), parseInt(cell.dataset.c));
+            
+            lastClick = {r, c, time: now};
+            handleClick(r, c);  // 单击 = 揭开
         });
         
         document.getElementById('board').addEventListener('contextmenu', e => {
@@ -459,20 +469,6 @@
             if (!cell) return;
             handleFlag(parseInt(cell.dataset.r), parseInt(cell.dataset.c));
         });
-        
-        document.getElementById('board').addEventListener('touchstart', e => {
-            const cell = e.target.closest('.cell');
-            if (!cell) return;
-            longPress = false;
-            pressTimer = setTimeout(() => {
-                longPress = true;
-                handleFlag(parseInt(cell.dataset.r), parseInt(cell.dataset.c));
-            }, 400);
-        }, {passive: true});
-        
-        document.getElementById('board').addEventListener('touchend', () => {
-            if (pressTimer) clearTimeout(pressTimer);
-        }, {passive: true});
         
         window.addEventListener('resize', applySize);
         

@@ -13,65 +13,47 @@
         }
         
         :root {
-            --bg-color: #1a1a2e;
-            --board-bg: #16213e;
-            --cell-bg: #0f3460;
-            --cell-revealed: rgba(255,255,255,0.1);
-            --text-color: #eee;
-            --accent: #e94560;
-            --mine-color: #e94560;
-            --flag-color: #ffeb3b;
-        }
-        
-        html, body {
-            height: 100%;
-            overflow: hidden;
+            --cell-size: 30px;
         }
         
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             background: linear-gradient(135deg, #1a1a2e, #16213e);
-            color: var(--text-color);
+            color: #eee;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 10px;
-            height: 100dvh;
-            touch-action: none;
+            min-height: 100vh;
             user-select: none;
         }
         
         h1 {
             font-size: 24px;
             margin-bottom: 8px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            flex-shrink: 0;
         }
         
         .controls-row {
             display: flex;
-            justify-content: center;
             gap: 10px;
             margin-bottom: 10px;
-            flex-shrink: 0;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         
-        .control-group {
-            background: var(--board-bg);
+        .control-group, .stat-box {
+            background: #16213e;
             padding: 6px 12px;
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         
-        .control-label {
+        .control-label, .stat-label {
             color: #aaa;
             font-size: 11px;
         }
         
         select {
-            background: var(--cell-bg);
+            background: #0f3460;
             color: #fff;
             border: none;
             padding: 5px 10px;
@@ -80,43 +62,23 @@
             cursor: pointer;
         }
         
-        .stat-box {
-            background: var(--board-bg);
-            padding: 6px 12px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .stat-label {
-            color: #aaa;
-            font-size: 10px;
-        }
-        
         .stat-value {
             color: #fff;
             font-size: 16px;
             font-weight: bold;
         }
         
-        .stat-value.mines {
-            color: var(--mine-color);
-        }
-        
-        .stat-value.flags {
-            color: var(--flag-color);
-        }
+        .stat-value.mines { color: #e94560; }
+        .stat-value.flags { color: #ffeb3b; }
         
         .game-area {
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 0;
-            width: 100%;
         }
         
         .game-container {
-            background: var(--board-bg);
+            background: #16213e;
             border-radius: 10px;
             padding: 8px;
             border: 2px solid #0f3460;
@@ -130,76 +92,44 @@
         }
         
         .cell {
-            width: var(--cell-size, 30px);
-            height: var(--cell-size, 30px);
-            background: var(--cell-bg);
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background: #0f3460;
             border-radius: 4px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: calc(var(--cell-size, 30px) * 0.5);
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.1s;
             color: #fff;
         }
         
-        .cell:hover {
-            background: #1a4a7a;
-        }
+        .cell:hover { background: #1a4a7a; }
         
         .cell.revealed {
-            background: var(--cell-revealed);
+            background: rgba(255,255,255,0.1);
             cursor: default;
         }
         
-        .cell.revealed:hover {
-            background: var(--cell-revealed);
-        }
+        .cell.flagged::after { content: '🚩'; }
         
-        .cell.flagged {
-            background: #2a4a6a;
-        }
+        .cell.mine::after { content: '💣'; }
         
-        .cell.flagged::after {
-            content: '🚩';
-            font-size: calc(var(--cell-size, 30px) * 0.6);
-        }
+        .cell.exploded { background: #ff0000; }
         
-        .cell.mine {
-            background: var(--mine-color);
-        }
-        
-        .cell.mine::after {
-            content: '💣';
-            font-size: calc(var(--cell-size, 30px) * 0.6);
-        }
-        
-        .cell.exploded {
-            background: #ff0000;
-            animation: explode 0.3s ease;
-        }
-        
-        @keyframes explode {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
-        }
-        
-        /* 数字颜色 */
-        .cell.num-1 { color: #448aff; }
-        .cell.num-2 { color: #4caf50; }
-        .cell.num-3 { color: #e94560; }
-        .cell.num-4 { color: #9c27b0; }
-        .cell.num-5 { color: #ff9800; }
-        .cell.num-6 { color: #00bcd4; }
-        .cell.num-7 { color: #795548; }
-        .cell.num-8 { color: #607d8b; }
+        .num-1 { color: #448aff; }
+        .num-2 { color: #4caf50; }
+        .num-3 { color: #e94560; }
+        .num-4 { color: #9c27b0; }
+        .num-5 { color: #ff9800; }
+        .num-6 { color: #00bcd4; }
+        .num-7 { color: #795548; }
+        .num-8 { color: #607d8b; }
         
         .game-message {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(26, 26, 46, 0.9);
+            background: rgba(26,26,46,0.9);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -215,25 +145,21 @@
             pointer-events: auto;
         }
         
+        .game-message.win p { color: #4caf50; }
+        
         .game-message p {
             font-size: 28px;
-            font-weight: bold;
             margin-bottom: 15px;
-        }
-        
-        .game-message.win p {
-            color: #4caf50;
         }
         
         .btn-row {
             display: flex;
             gap: 10px;
             margin-top: 10px;
-            flex-shrink: 0;
         }
         
         .btn {
-            background: var(--cell-bg);
+            background: #0f3460;
             color: #fff;
             border: none;
             border-radius: 8px;
@@ -243,59 +169,18 @@
         }
         
         .btn:hover { background: #1a4a7a; }
-        .btn-accent { background: var(--accent); }
+        .btn-accent { background: #e94560; }
         
         .instructions {
             margin-top: 15px;
             color: #aaa;
             font-size: 13px;
-            text-align: center;
         }
         
-        /* 移动端 */
         @media (max-width: 600px) {
-            body {
-                padding: 8px;
-            }
-            
-            h1 {
-                font-size: 18px;
-                margin-bottom: 5px;
-            }
-            
-            .controls-row {
-                gap: 8px;
-                flex-wrap: wrap;
-                margin-bottom: 8px;
-            }
-            
-            .control-group {
-                padding: 4px 8px;
-            }
-            
-            select {
-                font-size: 11px;
-                padding: 4px 6px;
-            }
-            
-            .stat-box {
-                padding: 4px 8px;
-            }
-            
-            .stat-value {
-                font-size: 14px;
-            }
-            
-            .game-container {
-                padding: 5px;
-                border-width: 1px;
-            }
-            
-            .btn {
-                padding: 8px 15px;
-                font-size: 12px;
-            }
-            
+            h1 { font-size: 18px; }
+            .controls-row { gap: 8px; margin-bottom: 8px; }
+            .stat-value { font-size: 14px; }
             .instructions { display: none; }
         }
     </style>
@@ -306,7 +191,7 @@
     <div class="controls-row">
         <div class="control-group">
             <span class="control-label">难度</span>
-            <select id="difficulty" onchange="changeDifficulty()">
+            <select id="difficulty" onchange="startGame()">
                 <option value="easy">简单 (9×9)</option>
                 <option value="medium" selected>中等 (16×16)</option>
                 <option value="hard">困难 (20×15)</option>
@@ -329,7 +214,7 @@
     <div class="game-area">
         <div class="game-container">
             <div class="game-board" id="board"></div>
-            <div class="game-message" id="message">
+            <div class="game-message" id="msg">
                 <p id="msg-text">游戏结束!</p>
                 <button class="btn btn-accent" onclick="startGame()">再来一局</button>
             </div>
@@ -338,46 +223,32 @@
     
     <div class="btn-row">
         <button class="btn btn-accent" onclick="startGame()">新游戏</button>
-        <button class="btn" onclick="window.location.href='index.html'">返回</button>
+        <button class="btn" onclick="location.href='index.html'">返回</button>
     </div>
     
     <div class="instructions">
-        点击揭开 | 长按/右键 标记旗帜 | 数字表示周围地雷数
+        点击揭开 | 长按/右键 标记旗帜
     </div>
 
     <script>
-        const DIFFICULTIES = {
+        const DIFF = {
             easy: { cols: 9, rows: 9, mines: 10 },
             medium: { cols: 16, rows: 16, mines: 40 },
             hard: { cols: 20, rows: 15, mines: 50 }
         };
         
-        let cols, rows, mineCount;
-        let board = [];
-        let revealed = [];
-        let flagged = [];
-        let minesPos = [];
-        let gameOver = false;
-        let gameWon = false;
-        let firstClick = true;
-        let timer = null;
-        let time = 0;
+        let cols = 16, rows = 16, mineCount = 40;
+        let board = [], revealed = [], flagged = [];
+        let gameOver = false, gameWon = false, firstClick = true;
+        let timer = null, time = 0;
+        let longPress = false;
+        let pressTimer = null;
         
         function calcSize() {
             const vw = window.innerWidth;
-            const vh = window.innerHeight || 600;
-            
-            if (vw > 600) return 30;
-            
-            const topH = 80;
-            const btnH = 50;
-            const availableH = vh - topH - btnH - 25;
-            const availableW = vw - 25;
-            
-            const cellH = Math.floor(availableH / rows);
-            const cellW = Math.floor(availableW / cols);
-            
-            return Math.max(18, Math.min(28, Math.min(cellH, cellW)));
+            const vh = window.innerHeight;
+            const s = vw > 600 ? 30 : Math.min(28, Math.floor((vh - 160) / rows), Math.floor((vw - 30) / cols));
+            return Math.max(18, s);
         }
         
         function applySize() {
@@ -394,186 +265,93 @@
                 for (let c = 0; c < cols; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
-                    cell.id = `c-${r}-${c}`;
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
                     el.appendChild(cell);
                 }
             }
         }
         
-        function changeDifficulty() {
-            const d = document.getElementById('difficulty').value;
-            cols = DIFFICULTIES[d].cols;
-            rows = DIFFICULTIES[d].rows;
-            mineCount = DIFFICULTIES[d].mines;
-            startGame();
-        }
-        
         function startGame() {
-            const d = document.getElementById('difficulty').value || 'medium';
-            cols = DIFFICULTIES[d].cols;
-            rows = DIFFICULTIES[d].rows;
-            mineCount = DIFFICULTIES[d].mines;
+            const d = document.getElementById('difficulty').value;
+            cols = DIFF[d].cols;
+            rows = DIFF[d].rows;
+            mineCount = DIFF[d].mines;
             
-            board = Array(rows).fill(null).map(() => Array(cols).fill(0));
-            revealed = Array(rows).fill(null).map(() => Array(cols).fill(false));
-            flagged = Array(rows).fill(null).map(() => Array(cols).fill(false));
-            minesPos = [];
+            board = [];
+            revealed = [];
+            flagged = [];
+            for (let r = 0; r < rows; r++) {
+                board[r] = [];
+                revealed[r] = [];
+                flagged[r] = [];
+                for (let c = 0; c < cols; c++) {
+                    board[r][c] = 0;
+                    revealed[r][c] = false;
+                    flagged[r][c] = false;
+                }
+            }
+            
             gameOver = false;
             gameWon = false;
             firstClick = true;
             time = 0;
-            
             if (timer) clearInterval(timer);
             
             document.getElementById('mines').textContent = mineCount;
             document.getElementById('flags').textContent = 0;
             document.getElementById('time').textContent = 0;
-            hideMsg();
+            document.getElementById('msg').classList.remove('visible');
+            
             applySize();
             createBoard();
-            
-            // 全局变量存储长按状态
-            let longPressCell = null;
-            let longPressTimer = null;
-            
-            // 添加点击事件
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    const cell = document.getElementById(`c-${r}-${c}`);
-                    
-                    // PC端：点击揭开
-                    cell.addEventListener('click', () => {
-                        // 如果是长按触发的，忽略这次 click
-                        if (longPressCell && longPressCell.r === r && longPressCell.c === c) {
-                            longPressCell = null;
-                            return;
-                        }
-                        handleClick(r, c);
-                    });
-                    
-                    // PC端：右键标记
-                    cell.addEventListener('contextmenu', e => {
-                        e.preventDefault();
-                        handleFlag(r, c);
-                    });
-                }
-            }
-            
-            // 移动端：统一处理触摸
-            const gameBoard = document.getElementById('board');
-            
-            gameBoard.addEventListener('touchstart', e => {
-                const cell = e.target.closest('.cell');
-                if (!cell || cell.classList.contains('revealed')) return;
-                
-                const id = cell.id;
-                const match = id.match(/c-(\d+)-(\d+)/);
-                if (!match) return;
-                
-                const r = parseInt(match[1]);
-                const c = parseInt(match[2]);
-                
-                // 开始长按计时
-                longPressCell = null;
-                longPressTimer = setTimeout(() => {
-                    longPressCell = {r, c};
-                    handleFlag(r, c);
-                    // 添加视觉反馈
-                    cell.style.transform = 'scale(0.9)';
-                }, 400);
-            }, {passive: true});
-            
-            gameBoard.addEventListener('touchend', e => {
-                // 清除长按计时
-                if (longPressTimer) {
-                    clearTimeout(longPressTimer);
-                    longPressTimer = null;
-                }
-                
-                // 如果长按已执行，不做任何事（click 会检查 longPressCell）
-                if (longPressCell) {
-                    // 清除视觉反馈
-                    const cell = e.target.closest('.cell');
-                    if (cell) cell.style.transform = '';
-                    return;
-                }
-                
-                // 否则，短按 = 点击揭开
-                const cell = e.target.closest('.cell');
-                if (!cell || cell.classList.contains('revealed')) return;
-                
-                const id = cell.id;
-                const match = id.match(/c-(\d+)-(\d+)/);
-                if (!match) return;
-                
-                const r = parseInt(match[1]);
-                const c = parseInt(match[2]);
-                handleClick(r, c);
-            }, {passive: true});
-            
-            // 阻止长按后的 click 事件
-            gameBoard.addEventListener('click', e => {
-                if (longPressCell) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            }, true); // 使用 capture 模式
-        }
         }
         
-        function placeMines(safeR, safeC) {
-            // 避开第一次点击的位置及周围
-            const safeZone = [];
+        function placeMines(sr, sc) {
+            const safe = [];
             for (let dr = -1; dr <= 1; dr++) {
                 for (let dc = -1; dc <= 1; dc++) {
-                    safeZone.push({r: safeR + dr, c: safeC + dc});
+                    safe.push({r: sr + dr, c: sc + dc});
                 }
             }
             
-            minesPos = [];
-            while (minesPos.length < mineCount) {
+            let count = 0;
+            while (count < mineCount) {
                 const r = Math.floor(Math.random() * rows);
                 const c = Math.floor(Math.random() * cols);
-                
-                if (!safeZone.some(s => s.r === r && s.c === c) &&
-                    !minesPos.some(m => m.r === r && m.c === c)) {
-                    minesPos.push({r, c});
-                    board[r][c] = -1;  // -1 表示地雷
+                if (!safe.some(s => s.r === r && s.c === c) && board[r][c] !== -1) {
+                    board[r][c] = -1;
+                    count++;
                 }
             }
             
-            // 计算数字
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
                     if (board[r][c] !== -1) {
-                        board[r][c] = countMines(r, c);
+                        board[r][c] = countNear(r, c);
                     }
                 }
             }
             
-            // 启动计时器
             timer = setInterval(() => {
                 time++;
                 document.getElementById('time').textContent = time;
             }, 1000);
         }
         
-        function countMines(r, c) {
-            let count = 0;
+        function countNear(r, c) {
+            let n = 0;
             for (let dr = -1; dr <= 1; dr++) {
                 for (let dc = -1; dc <= 1; dc++) {
-                    const nr = r + dr;
-                    const nc = c + dc;
-                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                        if (board[nr][nc] === -1) count++;
-                    }
+                    const nr = r + dr, nc = c + dc;
+                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && board[nr][nc] === -1) n++;
                 }
             }
-            return count;
+            return n;
         }
         
         function handleClick(r, c) {
-            if (gameOver || gameWon || flagged[r][c] || revealed[r][c]) return;
+            if (gameOver || revealed[r][c] || flagged[r][c]) return;
             
             if (firstClick) {
                 firstClick = false;
@@ -584,16 +362,25 @@
             checkWin();
         }
         
+        function handleFlag(r, c) {
+            if (gameOver || revealed[r][c]) return;
+            
+            flagged[r][c] = !flagged[r][c];
+            const cell = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+            cell.classList.toggle('flagged');
+            
+            updateFlags();
+        }
+        
         function reveal(r, c) {
             if (r < 0 || r >= rows || c < 0 || c >= cols) return;
             if (revealed[r][c] || flagged[r][c]) return;
             
             revealed[r][c] = true;
-            const cell = document.getElementById(`c-${r}-${c}`);
+            const cell = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
             cell.classList.add('revealed');
             
             if (board[r][c] === -1) {
-                // 踩雷
                 cell.classList.add('mine', 'exploded');
                 endGame(false);
                 return;
@@ -601,9 +388,8 @@
             
             if (board[r][c] > 0) {
                 cell.textContent = board[r][c];
-                cell.classList.add(`num-${board[r][c]}`);
+                cell.classList.add('num-' + board[r][c]);
             } else {
-                // 空格，递归展开
                 for (let dr = -1; dr <= 1; dr++) {
                     for (let dc = -1; dc <= 1; dc++) {
                         reveal(r + dr, c + dc);
@@ -612,89 +398,86 @@
             }
         }
         
-        function handleFlag(r, c) {
-            if (gameOver || gameWon || revealed[r][c]) return;
-            
-            flagged[r][c] = !flagged[r][c];
-            const cell = document.getElementById(`c-${r}-${c}`);
-            
-            if (flagged[r][c]) {
-                cell.classList.add('flagged');
-                cell.textContent = '';
-            } else {
-                cell.classList.remove('flagged');
-            }
-            
-            updateFlagCount();
-        }
-        
-        function updateFlagCount() {
-            let count = 0;
+        function updateFlags() {
+            let f = 0;
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
-                    if (flagged[r][c]) count++;
+                    if (flagged[r][c]) f++;
                 }
             }
-            document.getElementById('flags').textContent = count;
-            document.getElementById('mines').textContent = mineCount - count;
+            document.getElementById('flags').textContent = f;
+            document.getElementById('mines').textContent = mineCount - f;
         }
         
         function checkWin() {
-            let revealedCount = 0;
+            let rev = 0;
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
-                    if (revealed[r][c]) revealedCount++;
+                    if (revealed[r][c]) rev++;
+                }
+            }
+            if (rev === cols * rows - mineCount) endGame(true);
+        }
+        
+        function endGame(win) {
+            gameOver = true;
+            gameWon = win;
+            if (timer) clearInterval(timer);
+            
+            if (!win) {
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (board[r][c] === -1) {
+                            const cell = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+                            cell.classList.add('mine');
+                        }
+                    }
                 }
             }
             
-            if (revealedCount === cols * rows - mineCount) {
-                endGame(true);
-            }
+            const msg = document.getElementById('msg');
+            const txt = document.getElementById('msg-text');
+            txt.textContent = win ? `恭喜！用时 ${time}秒` : '踩雷了！';
+            msg.classList.toggle('win', win);
+            msg.classList.add('visible');
         }
         
-        function endGame(won) {
-            gameOver = true;
-            gameWon = won;
-            if (timer) clearInterval(timer);
-            
-            // 显示所有地雷
-            if (!won) {
-                minesPos.forEach(m => {
-                    const cell = document.getElementById(`c-${m.r}-${m.c}`);
-                    if (!revealed[m.r][m.c]) {
-                        cell.classList.add('mine');
-                    }
-                });
+        // 事件处理
+        document.getElementById('board').addEventListener('click', e => {
+            const cell = e.target.closest('.cell');
+            if (!cell) return;
+            if (longPress) {
+                longPress = false;
+                return;
             }
-            
-            const msgEl = document.getElementById('message');
-            const textEl = document.getElementById('msg-text');
-            
-            if (won) {
-                textEl.textContent = `恭喜！用时 ${time} 秒`;
-                msgEl.classList.add('win');
-            } else {
-                textEl.textContent = '踩雷了!';
-                msgEl.classList.remove('win');
-            }
-            
-            msgEl.classList.add('visible');
-        }
+            handleClick(parseInt(cell.dataset.r), parseInt(cell.dataset.c));
+        });
         
-        function showMsg(t) {
-            document.getElementById('msg-text').textContent = t;
-            document.getElementById('message').classList.add('visible');
-        }
+        document.getElementById('board').addEventListener('contextmenu', e => {
+            e.preventDefault();
+            const cell = e.target.closest('.cell');
+            if (!cell) return;
+            handleFlag(parseInt(cell.dataset.r), parseInt(cell.dataset.c));
+        });
         
-        function hideMsg() {
-            document.getElementById('message').classList.remove('visible');
-        }
+        document.getElementById('board').addEventListener('touchstart', e => {
+            const cell = e.target.closest('.cell');
+            if (!cell) return;
+            longPress = false;
+            pressTimer = setTimeout(() => {
+                longPress = true;
+                handleFlag(parseInt(cell.dataset.r), parseInt(cell.dataset.c));
+            }, 400);
+        }, {passive: true});
+        
+        document.getElementById('board').addEventListener('touchend', () => {
+            if (pressTimer) clearTimeout(pressTimer);
+        }, {passive: true});
         
         window.addEventListener('resize', applySize);
-        window.addEventListener('orientationchange', () => setTimeout(applySize, 100));
         
         // 初始化
-        changeDifficulty();
+        startGame();
     </script>
 </body>
 </html>

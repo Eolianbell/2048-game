@@ -234,6 +234,31 @@
             gap: var(--gap-size);
         }
         
+        /* 根据网格大小动态调整单元格尺寸 */
+        /* 3x3 - 可以大一点 */
+        body[data-grid="3"] .grid-container {
+            --cell-size: min(100px, calc((100vh - 280px) / 3));
+            --gap-size: 12px;
+        }
+        
+        /* 4x4 - 默认大小 */
+        body[data-grid="4"] .grid-container {
+            --cell-size: min(80px, calc((100vh - 280px) / 4));
+            --gap-size: 10px;
+        }
+        
+        /* 5x5 - 缩小一点 */
+        body[data-grid="5"] .grid-container {
+            --cell-size: min(65px, calc((100vh - 280px) / 5));
+            --gap-size: 8px;
+        }
+        
+        /* 6x6 - 再缩小 */
+        body[data-grid="6"] .grid-container {
+            --cell-size: min(55px, calc((100vh - 280px) / 6));
+            --gap-size: 6px;
+        }
+        
         .grid-cell {
             background: var(--cell-bg);
             border-radius: 6px;
@@ -380,6 +405,27 @@
                 grid-template-columns: repeat(var(--grid-size), var(--cell-size));
                 grid-template-rows: repeat(var(--grid-size), var(--cell-size));
                 gap: var(--gap-size);
+            }
+            
+            /* 移动端根据格子大小调整 */
+            body[data-grid="3"] .grid-container {
+                --cell-size: min(85px, calc((100vw - 40px) / 3));
+                --gap-size: 10px;
+            }
+            
+            body[data-grid="4"] .grid-container {
+                --cell-size: min(65px, calc((100vw - 40px) / 4));
+                --gap-size: 8px;
+            }
+            
+            body[data-grid="5"] .grid-container {
+                --cell-size: min(52px, calc((100vw - 40px) / 5));
+                --gap-size: 6px;
+            }
+            
+            body[data-grid="6"] .grid-container {
+                --cell-size: min(44px, calc((100vw - 40px) / 6));
+                --gap-size: 5px;
             }
             
             .instructions {

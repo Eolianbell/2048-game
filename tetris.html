@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>俄罗斯方块</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
@@ -20,6 +20,7 @@
             --btn-bg: #0f3460;
             --btn-hover: #1a4a7a;
             --score-bg: #0f3460;
+            --accent: #e94560;
         }
         
         body {
@@ -29,17 +30,72 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
             min-height: 100vh;
             touch-action: none;
             user-select: none;
         }
         
         h1 {
-            font-size: 32px;
-            margin-bottom: 15px;
+            font-size: 28px;
+            margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
+        
+        /* 预览区域容器 - 移动端放在游戏板上方 */
+        .preview-container {
+            display: none;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        .preview-box {
+            background: var(--score-bg);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 90px;
+        }
+        
+        .preview-label {
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .preview-grid {
+            width: 70px;
+            height: 70px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 2px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+            padding: 5px;
+            margin: 0 auto;
+        }
+        
+        .preview-cell {
+            border-radius: 2px;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .preview-cell.filled {
+            border-radius: 2px;
+            box-shadow: inset 0 0 5px rgba(255,255,255,0.3);
+        }
+        
+        /* 方块颜色 */
+        .preview-cell.I, .cell.I { background: linear-gradient(135deg, #00f5ff, #00bcd4); }
+        .preview-cell.O, .cell.O { background: linear-gradient(135deg, #ffeb3b, #ffc107); }
+        .preview-cell.T, .cell.T { background: linear-gradient(135deg, #e040fb, #9c27b0); }
+        .preview-cell.S, .cell.S { background: linear-gradient(135deg, #76ff03, #4caf50); }
+        .preview-cell.Z, .cell.Z { background: linear-gradient(135deg, #ff5252, #f44336); }
+        .preview-cell.J, .cell.J { background: linear-gradient(135deg, #448aff, #2196f3); }
+        .preview-cell.L, .cell.L { background: linear-gradient(135deg, #ff9800, #ff5722); }
         
         .game-wrapper {
             display: flex;
@@ -81,9 +137,9 @@
         }
         
         .next-label {
-            color: #aaa;
-            font-size: 12px;
-            text-transform: uppercase;
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: bold;
             margin-bottom: 10px;
         }
         
@@ -99,8 +155,31 @@
             padding: 5px;
         }
         
-        .next-cell {
-            border-radius: 2px;
+        .hold-box {
+            background: var(--score-bg);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid var(--accent);
+        }
+        
+        .hold-label {
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .hold-preview {
+            width: 80px;
+            height: 80px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 2px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+            padding: 5px;
         }
         
         .controls {
@@ -129,6 +208,14 @@
             transform: translateY(0);
         }
         
+        .btn-hold {
+            background: var(--accent);
+        }
+        
+        .btn-hold:hover {
+            background: #ff6b6b;
+        }
+        
         .game-container {
             background: var(--board-bg);
             border-radius: 10px;
@@ -154,15 +241,6 @@
             border-radius: 3px;
             box-shadow: inset 0 0 5px rgba(255,255,255,0.3);
         }
-        
-        /* 方块颜色 */
-        .cell.I { background: linear-gradient(135deg, #00f5ff, #00bcd4); }
-        .cell.O { background: linear-gradient(135deg, #ffeb3b, #ffc107); }
-        .cell.T { background: linear-gradient(135deg, #e040fb, #9c27b0); }
-        .cell.S { background: linear-gradient(135deg, #76ff03, #4caf50); }
-        .cell.Z { background: linear-gradient(135deg, #ff5252, #f44336); }
-        .cell.J { background: linear-gradient(135deg, #448aff, #2196f3); }
-        .cell.L { background: linear-gradient(135deg, #ff9800, #ff5722); }
         
         .game-message {
             position: absolute;
@@ -203,7 +281,7 @@
         /* 移动端控制 */
         .mobile-controls {
             display: none;
-            margin-top: 20px;
+            margin-top: 15px;
             gap: 10px;
         }
         
@@ -211,17 +289,24 @@
             background: var(--btn-bg);
             color: #fff;
             border: none;
-            border-radius: 10px;
-            padding: 20px;
+            border-radius: 12px;
+            padding: 18px;
             font-size: 24px;
             cursor: pointer;
-            min-width: 70px;
-            min-height: 70px;
+            min-width: 65px;
+            min-height: 65px;
             touch-action: manipulation;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
         
         .mobile-btn:active {
-            background: var(--btn-hover);
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .mobile-btn-hold {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            font-size: 18px;
         }
         
         .mobile-row {
@@ -230,7 +315,8 @@
             justify-content: center;
         }
         
-        @media (max-width: 600px) {
+        /* 移动端适配 */
+        @media (max-width: 700px) {
             body {
                 padding: 10px;
                 min-height: 100vh;
@@ -238,61 +324,54 @@
             }
             
             h1 {
-                font-size: 22px;
-                margin-bottom: 10px;
+                font-size: 20px;
+                margin-bottom: 8px;
+            }
+            
+            /* 预览区域放在游戏板上方 */
+            .preview-container {
+                display: flex;
             }
             
             .game-wrapper {
                 flex-direction: column;
                 align-items: center;
-                gap: 15px;
+                gap: 10px;
+            }
+            
+            /* 隐藏侧边栏的预览 */
+            .side-panel .next-box,
+            .side-panel .hold-box {
+                display: none;
             }
             
             .side-panel {
                 flex-direction: row;
                 flex-wrap: wrap;
                 justify-content: center;
-                gap: 10px;
-            }
-            
-            .side-panel:first-child {
-                order: -1;
+                gap: 8px;
             }
             
             .game-board {
-                grid-template-columns: repeat(10, 28px);
-                grid-template-rows: repeat(20, 28px);
+                grid-template-columns: repeat(10, 26px);
+                grid-template-rows: repeat(20, 26px);
             }
             
             .game-container {
                 padding: 8px;
             }
             
-            .next-preview {
-                width: 70px;
-                height: 70px;
-            }
-            
             .score-box {
-                min-width: 70px;
+                min-width: 65px;
                 padding: 8px 12px;
             }
             
             .score-value {
-                font-size: 18px;
+                font-size: 16px;
             }
             
             .score-label {
                 font-size: 10px;
-            }
-            
-            .next-box {
-                padding: 10px;
-            }
-            
-            .next-label {
-                font-size: 10px;
-                margin-bottom: 5px;
             }
             
             .controls {
@@ -303,28 +382,20 @@
                 display: flex;
                 flex-direction: column;
                 width: 100%;
-                max-width: 320px;
-                gap: 12px;
-                margin-top: 15px;
+                max-width: 300px;
+                gap: 10px;
+                margin-top: 12px;
             }
             
             .mobile-btn {
-                min-width: 65px;
-                min-height: 65px;
+                min-width: 60px;
+                min-height: 60px;
                 padding: 15px;
-                font-size: 28px;
-                border-radius: 12px;
-                background: linear-gradient(135deg, #0f3460, #1a4a7a);
-                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            }
-            
-            .mobile-btn:active {
-                transform: scale(0.95);
-                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                font-size: 22px;
             }
             
             .mobile-row {
-                gap: 12px;
+                gap: 10px;
             }
             
             .instructions {
@@ -335,6 +406,18 @@
 </head>
 <body>
     <h1>🧱 俄罗斯方块</h1>
+    
+    <!-- 移动端预览区域 - 放在游戏板上方 -->
+    <div class="preview-container">
+        <div class="preview-box">
+            <div class="preview-label">📦 保留</div>
+            <div class="preview-grid" id="hold-preview-mobile"></div>
+        </div>
+        <div class="preview-box">
+            <div class="preview-label">👀 下一个</div>
+            <div class="preview-grid" id="next-preview-mobile"></div>
+        </div>
+    </div>
     
     <div class="game-wrapper">
         <div class="side-panel">
@@ -361,11 +444,16 @@
         </div>
         
         <div class="side-panel">
+            <div class="hold-box">
+                <div class="hold-label">📦 保留</div>
+                <div class="hold-preview" id="hold-preview"></div>
+            </div>
             <div class="next-box">
-                <div class="next-label">下一个</div>
+                <div class="next-label">👀 下一个</div>
                 <div class="next-preview" id="next-preview"></div>
             </div>
             <div class="controls">
+                <button class="btn btn-hold" onclick="hold()">保留 (H)</button>
                 <button class="btn" onclick="initGame()">新游戏</button>
                 <button class="btn" onclick="togglePause()">暂停</button>
             </div>
@@ -376,6 +464,7 @@
     <div class="mobile-controls">
         <div class="mobile-row">
             <button class="mobile-btn" ontouchstart="rotate()">↻</button>
+            <button class="mobile-btn mobile-btn-hold" ontouchstart="hold()">保留</button>
             <button class="mobile-btn" ontouchstart="hardDrop()">⬇</button>
         </div>
         <div class="mobile-row">
@@ -386,7 +475,7 @@
     </div>
     
     <div class="instructions">
-        方向键/WASD 移动 | ↑/W 旋转 | 空格 快速下落 | P 暂停
+        方向键/WASD 移动 | ↑/W 旋转 | 空格 快速下落 | H 保留 | P 暂停
     </div>
 
     <script>
@@ -400,6 +489,8 @@
         let paused = false;
         let currentPiece = null;
         let nextPiece = null;
+        let holdPiece = null;
+        let canHold = true;  // 每次落地后才能再次 hold
         let dropInterval = null;
         let dropSpeed = 500;
         
@@ -445,6 +536,8 @@
             gameOver = false;
             paused = false;
             dropSpeed = 500;
+            holdPiece = null;
+            canHold = true;
             
             updateDisplay();
             hideMessage();
@@ -452,6 +545,7 @@
             
             currentPiece = createPiece();
             nextPiece = createPiece();
+            renderHoldPiece();
             renderNextPiece();
             
             if (dropInterval) clearInterval(dropInterval);
@@ -514,19 +608,31 @@
             }
         }
         
-        function renderNextPiece() {
-            const preview = document.getElementById('next-preview');
-            preview.innerHTML = '';
+        function renderPreviewGrid(containerId, piece) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = '';
             for (let r = 0; r < 4; r++) {
                 for (let c = 0; c < 4; c++) {
                     const cell = document.createElement('div');
-                    cell.className = 'next-cell';
-                    if (nextPiece && nextPiece.shape[r] && nextPiece.shape[r][c]) {
-                        cell.classList.add('filled', nextPiece.color);
+                    cell.className = 'preview-cell';
+                    if (piece && piece.shape[r] && piece.shape[r][c]) {
+                        cell.classList.add('filled', piece.color);
                     }
-                    preview.appendChild(cell);
+                    container.appendChild(cell);
                 }
             }
+        }
+        
+        function renderNextPiece() {
+            renderPreviewGrid('next-preview', nextPiece);
+            renderPreviewGrid('next-preview-mobile', nextPiece);
+        }
+        
+        function renderHoldPiece() {
+            renderPreviewGrid('hold-preview', holdPiece);
+            renderPreviewGrid('hold-preview-mobile', holdPiece);
         }
         
         function drop() {
@@ -538,6 +644,7 @@
                 
                 currentPiece = nextPiece;
                 nextPiece = createPiece();
+                canHold = true;  // 落地后可以再次 hold
                 renderNextPiece();
                 
                 if (!canMove(0, 0)) {
@@ -599,12 +706,10 @@
             }
             
             if (cleared > 0) {
-                // 计分：1行=100, 2行=300, 3行=500, 4行=800
                 const points = [0, 100, 300, 500, 800];
                 score += points[cleared] * level;
                 lines += cleared;
                 
-                // 每10行升一级
                 level = Math.floor(lines / 10) + 1;
                 dropSpeed = Math.max(100, 500 - (level - 1) * 50);
                 
@@ -613,6 +718,38 @@
                 
                 updateDisplay();
             }
+        }
+        
+        function hold() {
+            if (gameOver || paused || !canHold) return;
+            
+            canHold = false;
+            
+            if (holdPiece === null) {
+                // 第一次 hold：把当前方块存起来，换出下一个
+                holdPiece = {
+                    shape: PIECES[currentPiece.color].shape.map(row => [...row]),
+                    color: currentPiece.color,
+                    x: Math.floor(COLS / 2) - Math.ceil(PIECES[currentPiece.color].shape[0].length / 2),
+                    y: 0
+                };
+                currentPiece = nextPiece;
+                nextPiece = createPiece();
+            } else {
+                // 交换当前方块和 hold 方块
+                const temp = {
+                    shape: PIECES[currentPiece.color].shape.map(row => [...row]),
+                    color: currentPiece.color,
+                    x: Math.floor(COLS / 2) - Math.ceil(PIECES[currentPiece.color].shape[0].length / 2),
+                    y: 0
+                };
+                currentPiece = holdPiece;
+                holdPiece = temp;
+            }
+            
+            renderHoldPiece();
+            renderNextPiece();
+            render();
         }
         
         function move(direction) {
@@ -646,7 +783,6 @@
                 currentPiece.shape = newShape;
                 render();
             } else {
-                // 墙踢：尝试左右移动后旋转
                 for (let offset of [-1, 1, -2, 2]) {
                     if (canMove(offset, 0, newShape)) {
                         currentPiece.x += offset;
@@ -726,6 +862,11 @@
                     e.preventDefault();
                     hardDrop();
                     break;
+                case 'h':
+                case 'H':
+                    e.preventDefault();
+                    hold();
+                    break;
                 case 'p':
                 case 'P':
                     e.preventDefault();
@@ -734,11 +875,10 @@
             }
         });
         
-        // 移动端控制
+        // 滑动控制
         let touchStartX = 0;
         let touchStartY = 0;
         
-        // 滑动控制
         document.addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
@@ -754,7 +894,6 @@
             if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minSwipe) {
                 move(dx > 0 ? 'right' : 'left');
             } else if (dy > minSwipe) {
-                // 向下滑动：直接下落到底
                 hardDrop();
             } else if (dy < -minSwipe) {
                 rotate();
@@ -763,12 +902,10 @@
         
         // 按钮长按支持
         let moveInterval = null;
-        let currentMoveDirection = null;
         
         function startContinuousMove(direction) {
             if (gameOver || paused) return;
             move(direction);
-            currentMoveDirection = direction;
             moveInterval = setInterval(() => move(direction), 80);
         }
         
@@ -779,14 +916,12 @@
             }
         }
         
-        // 为移动端按钮添加长按支持
         document.querySelectorAll('.mobile-btn').forEach(btn => {
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 const action = btn.getAttribute('ontouchstart');
                 if (action) {
                     eval(action);
-                    // 左右下支持长按
                     const dirMatch = action.match(/move\('([^']+)'\)/);
                     if (dirMatch) {
                         startContinuousMove(dirMatch[1]);

@@ -233,45 +233,98 @@
         @media (max-width: 600px) {
             body {
                 padding: 10px;
+                min-height: 100vh;
+                justify-content: flex-start;
             }
             
             h1 {
-                font-size: 24px;
+                font-size: 22px;
+                margin-bottom: 10px;
             }
             
             .game-wrapper {
                 flex-direction: column;
                 align-items: center;
+                gap: 15px;
             }
             
             .side-panel {
                 flex-direction: row;
                 flex-wrap: wrap;
                 justify-content: center;
+                gap: 10px;
+            }
+            
+            .side-panel:first-child {
+                order: -1;
             }
             
             .game-board {
-                grid-template-columns: repeat(10, 25px);
-                grid-template-rows: repeat(20, 25px);
+                grid-template-columns: repeat(10, 28px);
+                grid-template-rows: repeat(20, 28px);
+            }
+            
+            .game-container {
+                padding: 8px;
             }
             
             .next-preview {
-                width: 60px;
-                height: 60px;
+                width: 70px;
+                height: 70px;
             }
             
             .score-box {
-                min-width: 80px;
-                padding: 10px 15px;
+                min-width: 70px;
+                padding: 8px 12px;
             }
             
             .score-value {
-                font-size: 20px;
+                font-size: 18px;
+            }
+            
+            .score-label {
+                font-size: 10px;
+            }
+            
+            .next-box {
+                padding: 10px;
+            }
+            
+            .next-label {
+                font-size: 10px;
+                margin-bottom: 5px;
+            }
+            
+            .controls {
+                display: none;
             }
             
             .mobile-controls {
                 display: flex;
                 flex-direction: column;
+                width: 100%;
+                max-width: 320px;
+                gap: 12px;
+                margin-top: 15px;
+            }
+            
+            .mobile-btn {
+                min-width: 65px;
+                min-height: 65px;
+                padding: 15px;
+                font-size: 28px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #0f3460, #1a4a7a);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            }
+            
+            .mobile-btn:active {
+                transform: scale(0.95);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            }
+            
+            .mobile-row {
+                gap: 12px;
             }
             
             .instructions {
@@ -322,15 +375,13 @@
     <!-- 移动端控制 -->
     <div class="mobile-controls">
         <div class="mobile-row">
-            <button class="mobile-btn" onclick="rotate()">↻</button>
+            <button class="mobile-btn" ontouchstart="rotate()">↻</button>
+            <button class="mobile-btn" ontouchstart="hardDrop()">⬇</button>
         </div>
         <div class="mobile-row">
-            <button class="mobile-btn" onclick="move('left')">◀</button>
-            <button class="mobile-btn" onclick="hardDrop()">⬇</button>
-            <button class="mobile-btn" onclick="move('right')">▶</button>
-        </div>
-        <div class="mobile-row">
-            <button class="mobile-btn" onclick="move('down')">▼</button>
+            <button class="mobile-btn" ontouchstart="move('left')">◀</button>
+            <button class="mobile-btn" ontouchstart="move('down')">▼</button>
+            <button class="mobile-btn" ontouchstart="move('right')">▶</button>
         </div>
     </div>
     
@@ -683,10 +734,11 @@
             }
         });
         
-        // 触摸控制
+        // 移动端控制
         let touchStartX = 0;
         let touchStartY = 0;
         
+        // 滑动控制
         document.addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
@@ -707,6 +759,45 @@
                 rotate();
             }
         }, {passive: true});
+        
+        // 按钮长按支持
+        let moveInterval = null;
+        let currentMoveDirection = null;
+        
+        function startContinuousMove(direction) {
+            if (gameOver || paused) return;
+            move(direction);
+            currentMoveDirection = direction;
+            moveInterval = setInterval(() => move(direction), 80);
+        }
+        
+        function stopContinuousMove() {
+            if (moveInterval) {
+                clearInterval(moveInterval);
+                moveInterval = null;
+            }
+        }
+        
+        // 为移动端按钮添加长按支持
+        document.querySelectorAll('.mobile-btn').forEach(btn => {
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const action = btn.getAttribute('ontouchstart');
+                if (action) {
+                    eval(action);
+                    // 左右下支持长按
+                    const dirMatch = action.match(/move\('([^']+)'\)/);
+                    if (dirMatch) {
+                        startContinuousMove(dirMatch[1]);
+                    }
+                }
+            });
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                stopContinuousMove();
+            });
+            btn.addEventListener('touchcancel', stopContinuousMove);
+        });
         
         initGame();
     </script>

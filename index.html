@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小龙游戏屋</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #e94560;
+            --accent-light: #ff6b6b;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            font-size: 36px;
+            color: var(--accent);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .subtitle {
+            color: #aaa;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(233, 69, 96, 0.2);
+        }
+        
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(233, 69, 96, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .game-card:hover::before {
+            opacity: 1;
+        }
+        
+        .game-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .game-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--accent-light);
+        }
+        
+        .game-desc {
+            color: #aaa;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .play-btn {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            padding: 12px 30px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .play-btn:hover {
+            background: var(--accent-light);
+            transform: scale(1.1);
+        }
+        
+        .coming-soon {
+            background: rgba(255,255,255,0.05);
+            color: #666;
+            padding: 8px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        @media (max-width: 600px) {
+            .header {
+                margin-bottom: 30px;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            .logo {
+                font-size: 36px;
+            }
+            
+            .games-grid {
+                gap: 20px;
+            }
+            
+            .game-card {
+                padding: 20px;
+            }
+            
+            .game-icon {
+                font-size: 48px;
+            }
+            
+            .game-name {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🎮</div>
+        <h1>小龙游戏屋</h1>
+        <p class="subtitle">经典小游戏，随时畅玩</p>
+    </div>
+    
+    <div class="games-grid">
+        <!-- 2048 -->
+        <div class="game-card" onclick="window.location.href='2048.html'">
+            <span class="game-icon">🧩</span>
+            <div class="game-name">2048</div>
+            <div class="game-desc">
+                经典数字合并游戏<br>
+                滑动合并方块，挑战2048！
+            </div>
+            <a href="2048.html" class="play-btn">开始游戏</a>
+        </div>
+        
+        <!-- 俄罗斯方块 -->
+        <div class="game-card" onclick="window.location.href='tetris.html'">
+            <span class="game-icon">🧱</span>
+            <div class="game-name">俄罗斯方块</div>
+            <div class="game-desc">
+                经典消除游戏<br>
+                旋转方块，消除满行！
+            </div>
+            <a href="tetris.html" class="play-btn">开始游戏</a>
+        </div>
+        
+        <!-- 更多游戏预留 -->
+        <div class="game-card" style="opacity: 0.6;">
+            <span class="game-icon">🎯</span>
+            <div class="game-name">贪吃蛇</div>
+            <div class="game-desc">
+                经典贪吃蛇游戏<br>
+                控制蛇吃食物，越长越好！
+            </div>
+            <span class="coming-soon">即将推出</span>
+        </div>
+        
+        <div class="game-card" style="opacity: 0.6;">
+            <span class="game-icon">💣</span>
+            <div class="game-name">扫雷</div>
+            <div class="game-desc">
+                经典策略游戏<br>
+                找出所有地雷，不要踩雷！
+            </div>
+            <span class="coming-soon">即将推出</span>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>更多游戏持续开发中 · <a href="https://github.com" target="_blank">GitHub</a></p>
+    </div>
+</body>
+</html>

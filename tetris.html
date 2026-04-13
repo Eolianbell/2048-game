@@ -318,25 +318,43 @@
         /* 移动端适配 */
         @media (max-width: 700px) {
             body {
-                padding: 10px;
+                padding: 8px 5px;
                 min-height: 100vh;
+                min-height: -webkit-fill-available;
                 justify-content: flex-start;
+                overflow-y: auto;
             }
             
             h1 {
-                font-size: 20px;
-                margin-bottom: 8px;
+                font-size: 18px;
+                margin-bottom: 5px;
             }
             
             /* 预览区域放在游戏板上方 */
             .preview-container {
                 display: flex;
+                gap: 10px;
+            }
+            
+            .preview-box {
+                min-width: 80px;
+                padding: 8px;
+            }
+            
+            .preview-label {
+                font-size: 12px;
+                margin-bottom: 5px;
+            }
+            
+            .preview-grid {
+                width: 60px;
+                height: 60px;
             }
             
             .game-wrapper {
                 flex-direction: column;
                 align-items: center;
-                gap: 10px;
+                gap: 8px;
             }
             
             /* 隐藏侧边栏的预览 */
@@ -349,29 +367,30 @@
                 flex-direction: row;
                 flex-wrap: wrap;
                 justify-content: center;
-                gap: 8px;
+                gap: 6px;
             }
             
+            /* 核心优化：根据视口高度动态调整游戏板 */
             .game-board {
-                grid-template-columns: repeat(10, 26px);
-                grid-template-rows: repeat(20, 26px);
+                grid-template-columns: repeat(10, 22px);
+                grid-template-rows: repeat(20, 22px);
             }
             
             .game-container {
-                padding: 8px;
+                padding: 5px;
             }
             
             .score-box {
-                min-width: 65px;
-                padding: 8px 12px;
+                min-width: 55px;
+                padding: 6px 10px;
             }
             
             .score-value {
-                font-size: 16px;
+                font-size: 14px;
             }
             
             .score-label {
-                font-size: 10px;
+                font-size: 9px;
             }
             
             .controls {
@@ -382,24 +401,66 @@
                 display: flex;
                 flex-direction: column;
                 width: 100%;
-                max-width: 300px;
-                gap: 10px;
-                margin-top: 12px;
+                max-width: 280px;
+                gap: 8px;
+                margin-top: 10px;
             }
             
             .mobile-btn {
-                min-width: 60px;
-                min-height: 60px;
-                padding: 15px;
-                font-size: 22px;
+                min-width: 55px;
+                min-height: 55px;
+                padding: 12px;
+                font-size: 20px;
             }
             
             .mobile-row {
-                gap: 10px;
+                gap: 8px;
             }
             
             .instructions {
                 display: none;
+            }
+        }
+        
+        /* 更小的手机 */
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 16px;
+            }
+            
+            .preview-box {
+                min-width: 70px;
+                padding: 6px;
+            }
+            
+            .preview-grid {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .game-board {
+                grid-template-columns: repeat(10, 18px);
+                grid-template-rows: repeat(20, 18px);
+            }
+            
+            .score-box {
+                min-width: 50px;
+                padding: 5px 8px;
+            }
+            
+            .score-value {
+                font-size: 12px;
+            }
+            
+            .mobile-btn {
+                min-width: 50px;
+                min-height: 50px;
+                padding: 10px;
+                font-size: 18px;
+            }
+            
+            .mobile-row {
+                gap: 6px;
             }
         }
     </style>

@@ -19,6 +19,58 @@
             overflow: hidden;
         }
         h1 { font-size: 24px; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        
+        /* 关卡选择界面 */
+        .level-select {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 400px;
+        }
+        .level-card {
+            background: #16213e;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            border: 3px solid #0f3460;
+            transition: all 0.2s;
+        }
+        .level-card:hover {
+            transform: scale(1.05);
+            border-color: #e94560;
+        }
+        .level-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .level-num {
+            font-size: 36px;
+            font-weight: bold;
+            color: #e94560;
+        }
+        .level-name {
+            font-size: 14px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        .level-stars {
+            font-size: 20px;
+            margin-top: 8px;
+        }
+        
+        /* 游戏界面 */
+        .game-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
         .controls-row {
             display: flex;
             gap: 10px;
@@ -60,6 +112,7 @@
         }
         .game-message.visible { opacity: 1; pointer-events: auto; }
         .game-message p { font-size: 28px; margin-bottom: 10px; }
+        .game-message .stars { font-size: 32px; margin-bottom: 15px; }
         .btn {
             background: #e94560;
             color: #fff;
@@ -71,6 +124,7 @@
             margin: 5px;
         }
         .btn:hover { background: #ff6b6b; }
+        .btn-secondary { background: #0f3460; }
         .instructions {
             margin-top: 15px;
             font-size: 14px;
@@ -80,49 +134,234 @@
             .game-container { height: 350px; }
             h1 { font-size: 18px; }
             .stat-value { font-size: 16px; }
+            .level-grid { gap: 10px; }
+            .level-card { padding: 15px; }
+            .level-num { font-size: 28px; }
         }
     </style>
 </head>
 <body>
-    <h1>🐦 愤怒的小鸟</h1>
-    <div class="controls-row">
-        <div class="stat-box">
-            <div class="stat-label">小鸟</div>
-            <div class="stat-value" id="birds">3</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label">猪</div>
-            <div class="stat-value" id="pigs">3</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label">得分</div>
-            <div class="stat-value" id="score">0</div>
-        </div>
+    <h1>💥 愤怒的小鸟</h1>
+    
+    <!-- 关卡选择界面 -->
+    <div class="level-select" id="levelSelect">
+        <p style="margin-bottom:20px;color:#aaa;">选择关卡</p>
+        <div class="level-grid" id="levelGrid"></div>
+        <button class="btn btn-secondary" style="margin-top:20px" onclick="location.href='index.html'">返回</button>
     </div>
     
-    <div class="game-container">
-        <canvas id="gameCanvas"></canvas>
-        <div class="game-message" id="message">
-            <p id="msgTitle">准备开始</p>
-            <button class="btn" onclick="startGame()">开始游戏</button>
-            <button class="btn" onclick="location.href='index.html'">返回</button>
+    <!-- 游戏界面 -->
+    <div class="game-screen" id="gameScreen">
+        <div class="controls-row">
+            <div class="stat-box">
+                <div class="stat-label">关卡</div>
+                <div class="stat-value" id="levelNum">1</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">小鸟</div>
+                <div class="stat-value" id="birds">3</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">得分</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
         </div>
+        
+        <div class="game-container">
+            <canvas id="gameCanvas"></canvas>
+            <div class="game-message" id="message">
+                <p id="msgTitle">胜利!</p>
+                <div class="stars" id="starsDisplay">⭐⭐⭐</div>
+                <button class="btn" id="nextBtn" onclick="nextLevel()">下一关</button>
+                <button class="btn btn-secondary" onclick="showLevelSelect()">关卡选择</button>
+            </div>
+        </div>
+        
+        <div class="instructions">拖拽弹弓发射小鸟，消灭所有猪！</div>
     </div>
-    
-    <div class="instructions">拖拽弹弓发射小鸟，消灭所有猪！</div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
         let width, height;
-        let birds, pigs, blocks, score;
-        let currentBird, gameState;
-        let slingshot, dragging, dragStart;
+        let birds, pigs, blocks, score, gameState;
+        let currentBird, currentLevel, dragging;
+        let slingshot;
         
         const GRAVITY = 0.3;
         const FRICTION = 0.99;
         const GROUND_Y_RATIO = 0.85;
+        
+        // 关卡数据
+        const LEVELS = [
+            {
+                name: "新手入门",
+                pigs: 1,
+                blocks: [],
+                birds: 2,
+                pigPos: [{x: 0.75}]
+            },
+            {
+                name: "简单练习",
+                pigs: 2,
+                blocks: [{x: 0.6, y: 30, w: 15, h: 60}],
+                birds: 3,
+                pigPos: [{x: 0.7}, {x: 0.8}]
+            },
+            {
+                name: "木墙阻挡",
+                pigs: 2,
+                blocks: [
+                    {x: 0.55, y: 30, w: 15, h: 60},
+                    {x: 0.85, y: 30, w: 15, h: 60}
+                ],
+                birds: 3,
+                pigPos: [{x: 0.65}, {x: 0.75}]
+            },
+            {
+                name: "双层结构",
+                pigs: 3,
+                blocks: [
+                    {x: 0.6, y: 30, w: 15, h: 60},
+                    {x: 0.85, y: 30, w: 15, h: 60},
+                    {x: 0.7, y: 75, w: 80, h: 12}
+                ],
+                birds: 3,
+                pigPos: [{x: 0.65, low: true}, {x: 0.75, low: true}, {x: 0.7, low: false}]
+            },
+            {
+                name: "堡垒挑战",
+                pigs: 3,
+                blocks: [
+                    {x: 0.5, y: 30, w: 15, h: 90},
+                    {x: 0.9, y: 30, w: 15, h: 90},
+                    {x: 0.6, y: 50, w: 60, h: 12},
+                    {x: 0.8, y: 50, w: 60, h: 12},
+                    {x: 0.7, y: 100, w: 100, h: 12}
+                ],
+                birds: 4,
+                pigPos: [{x: 0.65}, {x: 0.75}, {x: 0.7, low: false}]
+            },
+            {
+                name: "终极挑战",
+                pigs: 4,
+                blocks: [
+                    {x: 0.45, y: 30, w: 20, h: 120},
+                    {x: 0.95, y: 30, w: 20, h: 120},
+                    {x: 0.55, y: 60, w: 80, h: 15},
+                    {x: 0.85, y: 60, w: 80, h: 15},
+                    {x: 0.65, y: 120, w: 120, h: 15}
+                ],
+                birds: 5,
+                pigPos: [{x: 0.6}, {x: 0.7}, {x: 0.8}, {x: 0.7, low: false}]
+            }
+        ];
+        
+        // 加载关卡进度
+        let levelProgress = JSON.parse(localStorage.getItem('angryBirdsProgress') || '{"unlocked":1,"stars":{}}');
+        
+        function showLevelSelect() {
+            document.getElementById('levelSelect').style.display = 'flex';
+            document.getElementById('gameScreen').style.display = 'none';
+            renderLevelGrid();
+        }
+        
+        function renderLevelGrid() {
+            const grid = document.getElementById('levelGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < LEVELS.length; i++) {
+                const card = document.createElement('div');
+                card.className = 'level-card';
+                
+                const unlocked = i + 1 <= levelProgress.unlocked;
+                if (!unlocked) card.classList.add('locked');
+                
+                const stars = levelProgress.stars[i+1] || 0;
+                const starStr = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+                
+                card.innerHTML = `
+                    <div class="level-num">${i + 1}</div>
+                    <div class="level-name">${LEVELS[i].name}</div>
+                    <div class="level-stars">${starStr}</div>
+                `;
+                
+                if (unlocked) {
+                    card.onclick = () => startLevel(i + 1);
+                }
+                
+                grid.appendChild(card);
+            }
+        }
+        
+        function startLevel(levelNum) {
+            currentLevel = levelNum;
+            const level = LEVELS[levelNum - 1];
+            
+            document.getElementById('levelSelect').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'flex';
+            document.getElementById('levelNum').textContent = levelNum;
+            
+            resize();
+            score = 0;
+            gameState = 'playing';
+            
+            // 弹弓位置
+            slingshot = {
+                x: width * 0.12,
+                y: height * GROUND_Y_RATIO - 60,
+                radius: 50
+            };
+            
+            // 初始化小鸟
+            birds = [];
+            for (let i = 0; i < level.birds; i++) {
+                birds.push({
+                    x: slingshot.x,
+                    y: slingshot.y,
+                    vx: 0,
+                    vy: 0,
+                    radius: 15,
+                    launched: false,
+                    active: i === 0,
+                    color: ['#e94560', '#ffeb3b', '#2196f3', '#4caf50', '#ff9800'][i]
+                });
+            }
+            currentBird = birds[0];
+            
+            // 初始化猪
+            pigs = [];
+            for (const pos of level.pigPos) {
+                const baseY = pos.low === false ? height * GROUND_Y_RATIO - 100 : height * GROUND_Y_RATIO - 20;
+                pigs.push({
+                    x: width * pos.x,
+                    y: baseY,
+                    radius: 18,
+                    alive: true
+                });
+            }
+            
+            // 初始化障碍物
+            blocks = [];
+            for (const b of level.blocks) {
+                blocks.push({
+                    x: width * b.x,
+                    y: height * GROUND_Y_RATIO - b.y,
+                    width: b.w,
+                    height: b.h,
+                    type: 'wood',
+                    health: 2
+                });
+            }
+            
+            dragging = false;
+            
+            updateStats();
+            document.getElementById('message').classList.remove('visible');
+            
+            gameLoop();
+        }
         
         function resize() {
             const container = canvas.parentElement;
@@ -132,120 +371,19 @@
             canvas.height = height;
         }
         
-        function init() {
-            resize();
-            score = 0;
-            gameState = 'ready';
-            
-            document.getElementById('score').textContent = '0';
-            document.getElementById('msgTitle').textContent = '准备开始';
-            document.getElementById('message').classList.add('visible');
-            
-            draw();
-        }
-        
-        function startGame() {
-            resize();
-            score = 0;
-            gameState = 'playing';
-            
-            // 弹弓位置
-            slingshot = {
-                x: width * 0.15,
-                y: height * GROUND_Y_RATIO - 60,
-                radius: 50
-            };
-            
-            // 初始化小鸟
-            birds = [];
-            for (let i = 0; i < 3; i++) {
-                birds.push({
-                    x: slingshot.x,
-                    y: slingshot.y,
-                    vx: 0,
-                    vy: 0,
-                    radius: 15,
-                    launched: false,
-                    active: i === 0,
-                    color: ['#e94560', '#ffeb3b', '#2196f3'][i]
-                });
-            }
-            currentBird = birds[0];
-            
-            // 初始化猪
-            pigs = [];
-            const pigPositions = [
-                { x: width * 0.7, y: height * GROUND_Y_RATIO - 20 },
-                { x: width * 0.75, y: height * GROUND_Y_RATIO - 50 },
-                { x: width * 0.8, y: height * GROUND_Y_RATIO - 20 }
-            ];
-            for (const pos of pigPositions) {
-                pigs.push({
-                    x: pos.x,
-                    y: pos.y,
-                    radius: 18,
-                    alive: true
-                });
-            }
-            
-            // 初始化障碍物
-            blocks = [];
-            // 木块
-            blocks.push({
-                x: width * 0.65,
-                y: height * GROUND_Y_RATIO - 30,
-                width: 15,
-                height: 60,
-                type: 'wood',
-                health: 2
-            });
-            blocks.push({
-                x: width * 0.85,
-                y: height * GROUND_Y_RATIO - 30,
-                width: 15,
-                height: 60,
-                type: 'wood',
-                health: 2
-            });
-            // 横梁
-            blocks.push({
-                x: width * 0.7,
-                y: height * GROUND_Y_RATIO - 80,
-                width: 80,
-                height: 12,
-                type: 'wood',
-                health: 2
-            });
-            
-            dragging = false;
-            dragStart = null;
-            
-            updateStats();
-            document.getElementById('message').classList.remove('visible');
-            
-            gameLoop();
-        }
-        
         function updateStats() {
-            const aliveBirds = birds.filter(b => b.active && !b.launched).length + 
-                              birds.filter(b => b.active && b.launched && b.y < height).length;
-            const alivePigs = pigs.filter(p => p.alive).length;
-            
-            document.getElementById('birds').textContent = birds.filter(b => !b.launched || b.y > height).length;
-            document.getElementById('pigs').textContent = alivePigs;
+            document.getElementById('birds').textContent = birds.filter(b => !b.launched).length;
             document.getElementById('score').textContent = score;
         }
         
         function gameLoop() {
             if (gameState !== 'playing') return;
-            
             update();
             draw();
             requestAnimationFrame(gameLoop);
         }
         
         function update() {
-            // 更新已发射的小鸟
             for (const bird of birds) {
                 if (bird.launched && bird.active) {
                     bird.vy += GRAVITY;
@@ -254,36 +392,30 @@
                     bird.x += bird.vx;
                     bird.y += bird.vy;
                     
-                    // 地面碰撞
                     if (bird.y + bird.radius > height * GROUND_Y_RATIO) {
                         bird.y = height * GROUND_Y_RATIO - bird.radius;
                         bird.vy *= -0.5;
                         bird.vx *= 0.8;
                         
-                        // 停止条件
                         if (Math.abs(bird.vy) < 1 && Math.abs(bird.vx) < 1) {
                             bird.active = false;
                             nextBird();
                         }
                     }
                     
-                    // 边界
                     if (bird.x > width + 50 || bird.x < -50) {
                         bird.active = false;
                         nextBird();
                     }
                     
-                    // 检测碰撞
                     checkBirdCollisions(bird);
                 }
             }
             
-            // 检查游戏结束
             checkGameEnd();
         }
         
         function checkBirdCollisions(bird) {
-            // 碰撞猪
             for (const pig of pigs) {
                 if (pig.alive && circleCollision(bird, pig)) {
                     pig.alive = false;
@@ -294,7 +426,6 @@
                 }
             }
             
-            // 碰撞障碍物
             for (let i = 0; i < blocks.length; i++) {
                 const block = blocks[i];
                 if (circleRectCollision(bird, block)) {
@@ -343,12 +474,36 @@
             if (alivePigs === 0) {
                 gameState = 'win';
                 score += unusedBirds * 200;
+                
+                // 计算星级
+                const stars = unusedBirds >= LEVELS[currentLevel-1].birds - 1 ? 3 : 
+                              unusedBirds >= 1 ? 2 : 1;
+                
+                // 保存进度
+                if (!levelProgress.stars[currentLevel] || stars > levelProgress.stars[currentLevel]) {
+                    levelProgress.stars[currentLevel] = stars;
+                }
+                if (currentLevel >= levelProgress.unlocked && currentLevel < LEVELS.length) {
+                    levelProgress.unlocked = currentLevel + 1;
+                }
+                localStorage.setItem('angryBirdsProgress', JSON.stringify(levelProgress));
+                
                 document.getElementById('msgTitle').textContent = '🎉 胜利!';
+                document.getElementById('starsDisplay').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+                document.getElementById('nextBtn').style.display = currentLevel < LEVELS.length ? 'inline-block' : 'none';
                 document.getElementById('message').classList.add('visible');
             } else if (unusedBirds === 0 && activeBirds === 0) {
                 gameState = 'lose';
                 document.getElementById('msgTitle').textContent = '😢 失败!';
+                document.getElementById('starsDisplay').textContent = '☆☆☆';
+                document.getElementById('nextBtn').style.display = 'none';
                 document.getElementById('message').classList.add('visible');
+            }
+        }
+        
+        function nextLevel() {
+            if (currentLevel < LEVELS.length) {
+                startLevel(currentLevel + 1);
             }
         }
         
@@ -358,7 +513,6 @@
             const dx = slingshot.x - currentBird.x;
             const dy = slingshot.y - currentBird.y;
             
-            // 根据拉拽距离计算速度
             const power = Math.min(Math.sqrt(dx*dx + dy*dy) / 5, 15);
             const angle = Math.atan2(dy, dx);
             
@@ -372,18 +526,14 @@
         function draw() {
             ctx.clearRect(0, 0, width, height);
             
-            // 天空
             ctx.fillStyle = '#87CEEB';
             ctx.fillRect(0, 0, width, height * GROUND_Y_RATIO);
             
-            // 草地
             ctx.fillStyle = '#8BC34A';
             ctx.fillRect(0, height * GROUND_Y_RATIO, width, height * (1 - GROUND_Y_RATIO));
             
-            // 弹弓
             drawSlingshot();
             
-            // 拖拽线
             if (dragging && currentBird && !currentBird.launched) {
                 ctx.strokeStyle = '#666';
                 ctx.lineWidth = 3;
@@ -395,30 +545,24 @@
                 ctx.stroke();
             }
             
-            // 障碍物
             for (const block of blocks) {
-                ctx.fillStyle = block.type === 'wood' ? '#8d6e63' : '#78909c';
+                ctx.fillStyle = '#8d6e63';
                 ctx.fillRect(block.x, block.y - block.height, block.width, block.height);
                 ctx.strokeStyle = '#5d4037';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(block.x, block.y - block.height, block.width, block.height);
             }
             
-            // 猪
             for (const pig of pigs) {
-                if (pig.alive) {
-                    drawPig(pig);
-                }
+                if (pig.alive) drawPig(pig);
             }
             
-            // 小鸟
             for (const bird of birds) {
                 if (bird.active || (bird.launched && bird.y < height)) {
                     drawBird(bird);
                 }
             }
             
-            // 未使用的小鸟（弹弓下方）
             const unusedBirds = birds.filter(b => !b.launched && b !== currentBird);
             for (let i = 0; i < unusedBirds.length; i++) {
                 const b = unusedBirds[i];
@@ -430,12 +574,9 @@
         }
         
         function drawSlingshot() {
-            // 左支架
             ctx.fillStyle = '#5d4037';
             ctx.fillRect(slingshot.x - 15, slingshot.y - 30, 8, 50);
-            // 右支架
             ctx.fillRect(slingshot.x + 7, slingshot.y - 30, 8, 50);
-            // 底座
             ctx.fillRect(slingshot.x - 20, slingshot.y + 20, 40, 15);
         }
         
@@ -443,13 +584,11 @@
             ctx.save();
             ctx.translate(bird.x, bird.y);
             
-            // 身体
             ctx.fillStyle = bird.color;
             ctx.beginPath();
             ctx.arc(0, 0, bird.radius, 0, Math.PI * 2);
             ctx.fill();
             
-            // 眼睛
             ctx.fillStyle = '#fff';
             ctx.beginPath();
             ctx.arc(5, -4, 5, 0, Math.PI * 2);
@@ -459,7 +598,6 @@
             ctx.arc(7, -4, 2.5, 0, Math.PI * 2);
             ctx.fill();
             
-            // 嘴巴
             ctx.fillStyle = '#ff9800';
             ctx.beginPath();
             ctx.moveTo(10, 0);
@@ -468,7 +606,6 @@
             ctx.closePath();
             ctx.fill();
             
-            // 眉毛（愤怒表情）
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -483,13 +620,11 @@
             ctx.save();
             ctx.translate(pig.x, pig.y);
             
-            // 身体
             ctx.fillStyle = '#81c784';
             ctx.beginPath();
             ctx.arc(0, 0, pig.radius, 0, Math.PI * 2);
             ctx.fill();
             
-            // 鼻子
             ctx.fillStyle = '#a5d6a7';
             ctx.beginPath();
             ctx.ellipse(0, 3, 8, 5, 0, 0, Math.PI * 2);
@@ -500,7 +635,6 @@
             ctx.arc(3, 3, 2, 0, Math.PI * 2);
             ctx.fill();
             
-            // 眼睛
             ctx.fillStyle = '#fff';
             ctx.beginPath();
             ctx.arc(-7, -5, 5, 0, Math.PI * 2);
@@ -515,30 +649,21 @@
             ctx.restore();
         }
         
-        // 鼠标/触摸事件
+        // 事件处理
         canvas.addEventListener('mousedown', e => {
             if (gameState !== 'playing' || !currentBird || currentBird.launched) return;
-            
             const rect = canvas.getBoundingClientRect();
             const x = (e.clientX - rect.left) * (width / rect.width);
             const y = (e.clientY - rect.top) * (height / rect.height);
-            
-            const dx = x - currentBird.x;
-            const dy = y - currentBird.y;
-            if (Math.sqrt(dx*dx + dy*dy) < 30) {
-                dragging = true;
-                dragStart = {x, y};
-            }
+            dragging = true;
         });
         
         canvas.addEventListener('mousemove', e => {
             if (!dragging) return;
-            
             const rect = canvas.getBoundingClientRect();
             const x = (e.clientX - rect.left) * (width / rect.width);
             const y = (e.clientY - rect.top) * (height / rect.height);
             
-            // 限制拖拽范围
             const dx = x - slingshot.x;
             const dy = y - slingshot.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
@@ -553,28 +678,17 @@
             }
         });
         
-        canvas.addEventListener('mouseup', () => {
-            if (dragging) launchBird();
-        });
+        canvas.addEventListener('mouseup', () => { if (dragging) launchBird(); });
         
         canvas.addEventListener('touchstart', e => {
             e.preventDefault();
             if (gameState !== 'playing' || !currentBird || currentBird.launched) return;
-            
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            const x = (touch.clientX - rect.left) * (width / rect.width);
-            const y = (touch.clientY - rect.top) * (height / rect.height);
-            
             dragging = true;
-            currentBird.x = Math.min(x, slingshot.x + slingshot.radius);
-            currentBird.y = Math.min(y, slingshot.y + slingshot.radius);
-        });
+        }, {passive: false});
         
         canvas.addEventListener('touchmove', e => {
             e.preventDefault();
             if (!dragging) return;
-            
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
             const x = (touch.clientX - rect.left) * (width / rect.width);
@@ -592,16 +706,17 @@
                 currentBird.x = x;
                 currentBird.y = y;
             }
-        });
+        }, {passive: false});
         
         canvas.addEventListener('touchend', e => {
             e.preventDefault();
             if (dragging) launchBird();
-        });
+        }, {passive: false});
         
         window.addEventListener('resize', resize);
         
-        init();
+        // 初始化显示关卡选择
+        showLevelSelect();
     </script>
 </body>
 </html>

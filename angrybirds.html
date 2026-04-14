@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>愤怒的小鸟</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #4fc3f7);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+            overflow: hidden;
+        }
+        h1 { font-size: 24px; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .stat-box {
+            background: rgba(0,0,0,0.3);
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+        .stat-label { font-size: 12px; opacity: 0.7; }
+        .stat-value { font-size: 20px; font-weight: bold; }
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #8BC34A 70%, #8BC34A 100%);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 3px solid #1565c0;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .game-message {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .game-message.visible { opacity: 1; pointer-events: auto; }
+        .game-message p { font-size: 28px; margin-bottom: 10px; }
+        .btn {
+            background: #e94560;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background: #ff6b6b; }
+        .instructions {
+            margin-top: 15px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+        }
+        @media (max-width: 600px) {
+            .game-container { height: 350px; }
+            h1 { font-size: 18px; }
+            .stat-value { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🐦 愤怒的小鸟</h1>
+    <div class="controls-row">
+        <div class="stat-box">
+            <div class="stat-label">小鸟</div>
+            <div class="stat-value" id="birds">3</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">猪</div>
+            <div class="stat-value" id="pigs">3</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">得分</div>
+            <div class="stat-value" id="score">0</div>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div class="game-message" id="message">
+            <p id="msgTitle">准备开始</p>
+            <button class="btn" onclick="startGame()">开始游戏</button>
+            <button class="btn" onclick="location.href='index.html'">返回</button>
+        </div>
+    </div>
+    
+    <div class="instructions">拖拽弹弓发射小鸟，消灭所有猪！</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let birds, pigs, blocks, score;
+        let currentBird, gameState;
+        let slingshot, dragging, dragStart;
+        
+        const GRAVITY = 0.3;
+        const FRICTION = 0.99;
+        const GROUND_Y_RATIO = 0.85;
+        
+        function resize() {
+            const container = canvas.parentElement;
+            width = container.clientWidth;
+            height = container.clientHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        
+        function init() {
+            resize();
+            score = 0;
+            gameState = 'ready';
+            
+            document.getElementById('score').textContent = '0';
+            document.getElementById('msgTitle').textContent = '准备开始';
+            document.getElementById('message').classList.add('visible');
+            
+            draw();
+        }
+        
+        function startGame() {
+            resize();
+            score = 0;
+            gameState = 'playing';
+            
+            // 弹弓位置
+            slingshot = {
+                x: width * 0.15,
+                y: height * GROUND_Y_RATIO - 60,
+                radius: 50
+            };
+            
+            // 初始化小鸟
+            birds = [];
+            for (let i = 0; i < 3; i++) {
+                birds.push({
+                    x: slingshot.x,
+                    y: slingshot.y,
+                    vx: 0,
+                    vy: 0,
+                    radius: 15,
+                    launched: false,
+                    active: i === 0,
+                    color: ['#e94560', '#ffeb3b', '#2196f3'][i]
+                });
+            }
+            currentBird = birds[0];
+            
+            // 初始化猪
+            pigs = [];
+            const pigPositions = [
+                { x: width * 0.7, y: height * GROUND_Y_RATIO - 20 },
+                { x: width * 0.75, y: height * GROUND_Y_RATIO - 50 },
+                { x: width * 0.8, y: height * GROUND_Y_RATIO - 20 }
+            ];
+            for (const pos of pigPositions) {
+                pigs.push({
+                    x: pos.x,
+                    y: pos.y,
+                    radius: 18,
+                    alive: true
+                });
+            }
+            
+            // 初始化障碍物
+            blocks = [];
+            // 木块
+            blocks.push({
+                x: width * 0.65,
+                y: height * GROUND_Y_RATIO - 30,
+                width: 15,
+                height: 60,
+                type: 'wood',
+                health: 2
+            });
+            blocks.push({
+                x: width * 0.85,
+                y: height * GROUND_Y_RATIO - 30,
+                width: 15,
+                height: 60,
+                type: 'wood',
+                health: 2
+            });
+            // 横梁
+            blocks.push({
+                x: width * 0.7,
+                y: height * GROUND_Y_RATIO - 80,
+                width: 80,
+                height: 12,
+                type: 'wood',
+                health: 2
+            });
+            
+            dragging = false;
+            dragStart = null;
+            
+            updateStats();
+            document.getElementById('message').classList.remove('visible');
+            
+            gameLoop();
+        }
+        
+        function updateStats() {
+            const aliveBirds = birds.filter(b => b.active && !b.launched).length + 
+                              birds.filter(b => b.active && b.launched && b.y < height).length;
+            const alivePigs = pigs.filter(p => p.alive).length;
+            
+            document.getElementById('birds').textContent = birds.filter(b => !b.launched || b.y > height).length;
+            document.getElementById('pigs').textContent = alivePigs;
+            document.getElementById('score').textContent = score;
+        }
+        
+        function gameLoop() {
+            if (gameState !== 'playing') return;
+            
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function update() {
+            // 更新已发射的小鸟
+            for (const bird of birds) {
+                if (bird.launched && bird.active) {
+                    bird.vy += GRAVITY;
+                    bird.vx *= FRICTION;
+                    bird.vy *= FRICTION;
+                    bird.x += bird.vx;
+                    bird.y += bird.vy;
+                    
+                    // 地面碰撞
+                    if (bird.y + bird.radius > height * GROUND_Y_RATIO) {
+                        bird.y = height * GROUND_Y_RATIO - bird.radius;
+                        bird.vy *= -0.5;
+                        bird.vx *= 0.8;
+                        
+                        // 停止条件
+                        if (Math.abs(bird.vy) < 1 && Math.abs(bird.vx) < 1) {
+                            bird.active = false;
+                            nextBird();
+                        }
+                    }
+                    
+                    // 边界
+                    if (bird.x > width + 50 || bird.x < -50) {
+                        bird.active = false;
+                        nextBird();
+                    }
+                    
+                    // 检测碰撞
+                    checkBirdCollisions(bird);
+                }
+            }
+            
+            // 检查游戏结束
+            checkGameEnd();
+        }
+        
+        function checkBirdCollisions(bird) {
+            // 碰撞猪
+            for (const pig of pigs) {
+                if (pig.alive && circleCollision(bird, pig)) {
+                    pig.alive = false;
+                    score += 100;
+                    bird.vx *= 0.5;
+                    bird.vy *= 0.5;
+                    updateStats();
+                }
+            }
+            
+            // 碰撞障碍物
+            for (let i = 0; i < blocks.length; i++) {
+                const block = blocks[i];
+                if (circleRectCollision(bird, block)) {
+                    block.health--;
+                    if (block.health <= 0) {
+                        blocks.splice(i, 1);
+                        i--;
+                        score += 50;
+                    }
+                    bird.vx *= 0.7;
+                    bird.vy *= 0.7;
+                    updateStats();
+                }
+            }
+        }
+        
+        function circleCollision(a, b) {
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            return Math.sqrt(dx*dx + dy*dy) < a.radius + b.radius;
+        }
+        
+        function circleRectCollision(circle, rect) {
+            const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+            const closestY = Math.max(rect.y - rect.height, Math.min(circle.y, rect.y));
+            const dx = circle.x - closestX;
+            const dy = circle.y - closestY;
+            return Math.sqrt(dx*dx + dy*dy) < circle.radius;
+        }
+        
+        function nextBird() {
+            const unusedBirds = birds.filter(b => !b.launched);
+            if (unusedBirds.length > 0) {
+                currentBird = unusedBirds[0];
+                currentBird.active = true;
+                currentBird.x = slingshot.x;
+                currentBird.y = slingshot.y;
+            }
+        }
+        
+        function checkGameEnd() {
+            const alivePigs = pigs.filter(p => p.alive).length;
+            const unusedBirds = birds.filter(b => !b.launched).length;
+            const activeBirds = birds.filter(b => b.active && b.launched).length;
+            
+            if (alivePigs === 0) {
+                gameState = 'win';
+                score += unusedBirds * 200;
+                document.getElementById('msgTitle').textContent = '🎉 胜利!';
+                document.getElementById('message').classList.add('visible');
+            } else if (unusedBirds === 0 && activeBirds === 0) {
+                gameState = 'lose';
+                document.getElementById('msgTitle').textContent = '😢 失败!';
+                document.getElementById('message').classList.add('visible');
+            }
+        }
+        
+        function launchBird() {
+            if (!currentBird || currentBird.launched) return;
+            
+            const dx = slingshot.x - currentBird.x;
+            const dy = slingshot.y - currentBird.y;
+            
+            // 根据拉拽距离计算速度
+            const power = Math.min(Math.sqrt(dx*dx + dy*dy) / 5, 15);
+            const angle = Math.atan2(dy, dx);
+            
+            currentBird.vx = Math.cos(angle) * power;
+            currentBird.vy = Math.sin(angle) * power;
+            currentBird.launched = true;
+            
+            dragging = false;
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // 天空
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, width, height * GROUND_Y_RATIO);
+            
+            // 草地
+            ctx.fillStyle = '#8BC34A';
+            ctx.fillRect(0, height * GROUND_Y_RATIO, width, height * (1 - GROUND_Y_RATIO));
+            
+            // 弹弓
+            drawSlingshot();
+            
+            // 拖拽线
+            if (dragging && currentBird && !currentBird.launched) {
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(slingshot.x - 10, slingshot.y);
+                ctx.lineTo(currentBird.x, currentBird.y);
+                ctx.moveTo(slingshot.x + 10, slingshot.y);
+                ctx.lineTo(currentBird.x, currentBird.y);
+                ctx.stroke();
+            }
+            
+            // 障碍物
+            for (const block of blocks) {
+                ctx.fillStyle = block.type === 'wood' ? '#8d6e63' : '#78909c';
+                ctx.fillRect(block.x, block.y - block.height, block.width, block.height);
+                ctx.strokeStyle = '#5d4037';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(block.x, block.y - block.height, block.width, block.height);
+            }
+            
+            // 猪
+            for (const pig of pigs) {
+                if (pig.alive) {
+                    drawPig(pig);
+                }
+            }
+            
+            // 小鸟
+            for (const bird of birds) {
+                if (bird.active || (bird.launched && bird.y < height)) {
+                    drawBird(bird);
+                }
+            }
+            
+            // 未使用的小鸟（弹弓下方）
+            const unusedBirds = birds.filter(b => !b.launched && b !== currentBird);
+            for (let i = 0; i < unusedBirds.length; i++) {
+                const b = unusedBirds[i];
+                ctx.fillStyle = b.color;
+                ctx.beginPath();
+                ctx.arc(slingshot.x - 40 - i * 25, height * GROUND_Y_RATIO - 15, 12, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function drawSlingshot() {
+            // 左支架
+            ctx.fillStyle = '#5d4037';
+            ctx.fillRect(slingshot.x - 15, slingshot.y - 30, 8, 50);
+            // 右支架
+            ctx.fillRect(slingshot.x + 7, slingshot.y - 30, 8, 50);
+            // 底座
+            ctx.fillRect(slingshot.x - 20, slingshot.y + 20, 40, 15);
+        }
+        
+        function drawBird(bird) {
+            ctx.save();
+            ctx.translate(bird.x, bird.y);
+            
+            // 身体
+            ctx.fillStyle = bird.color;
+            ctx.beginPath();
+            ctx.arc(0, 0, bird.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 眼睛
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(5, -4, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(7, -4, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 嘴巴
+            ctx.fillStyle = '#ff9800';
+            ctx.beginPath();
+            ctx.moveTo(10, 0);
+            ctx.lineTo(20, -3);
+            ctx.lineTo(20, 5);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 眉毛（愤怒表情）
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-bird.radius + 3, -8);
+            ctx.lineTo(-bird.radius + 10, -bird.radius + 5);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+        
+        function drawPig(pig) {
+            ctx.save();
+            ctx.translate(pig.x, pig.y);
+            
+            // 身体
+            ctx.fillStyle = '#81c784';
+            ctx.beginPath();
+            ctx.arc(0, 0, pig.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 鼻子
+            ctx.fillStyle = '#a5d6a7';
+            ctx.beginPath();
+            ctx.ellipse(0, 3, 8, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#66bb6a';
+            ctx.beginPath();
+            ctx.arc(-3, 3, 2, 0, Math.PI * 2);
+            ctx.arc(3, 3, 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 眼睛
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(-7, -5, 5, 0, Math.PI * 2);
+            ctx.arc(7, -5, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-7, -5, 2.5, 0, Math.PI * 2);
+            ctx.arc(7, -5, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        // 鼠标/触摸事件
+        canvas.addEventListener('mousedown', e => {
+            if (gameState !== 'playing' || !currentBird || currentBird.launched) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (width / rect.width);
+            const y = (e.clientY - rect.top) * (height / rect.height);
+            
+            const dx = x - currentBird.x;
+            const dy = y - currentBird.y;
+            if (Math.sqrt(dx*dx + dy*dy) < 30) {
+                dragging = true;
+                dragStart = {x, y};
+            }
+        });
+        
+        canvas.addEventListener('mousemove', e => {
+            if (!dragging) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (width / rect.width);
+            const y = (e.clientY - rect.top) * (height / rect.height);
+            
+            // 限制拖拽范围
+            const dx = x - slingshot.x;
+            const dy = y - slingshot.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist > slingshot.radius) {
+                const angle = Math.atan2(dy, dx);
+                currentBird.x = slingshot.x + Math.cos(angle) * slingshot.radius;
+                currentBird.y = slingshot.y + Math.sin(angle) * slingshot.radius;
+            } else {
+                currentBird.x = x;
+                currentBird.y = y;
+            }
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            if (dragging) launchBird();
+        });
+        
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault();
+            if (gameState !== 'playing' || !currentBird || currentBird.launched) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = (touch.clientX - rect.left) * (width / rect.width);
+            const y = (touch.clientY - rect.top) * (height / rect.height);
+            
+            dragging = true;
+            currentBird.x = Math.min(x, slingshot.x + slingshot.radius);
+            currentBird.y = Math.min(y, slingshot.y + slingshot.radius);
+        });
+        
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (!dragging) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = (touch.clientX - rect.left) * (width / rect.width);
+            const y = (touch.clientY - rect.top) * (height / rect.height);
+            
+            const dx = x - slingshot.x;
+            const dy = y - slingshot.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist > slingshot.radius) {
+                const angle = Math.atan2(dy, dx);
+                currentBird.x = slingshot.x + Math.cos(angle) * slingshot.radius;
+                currentBird.y = slingshot.y + Math.sin(angle) * slingshot.radius;
+            } else {
+                currentBird.x = x;
+                currentBird.y = y;
+            }
+        });
+        
+        canvas.addEventListener('touchend', e => {
+            e.preventDefault();
+            if (dragging) launchBird();
+        });
+        
+        window.addEventListener('resize', resize);
+        
+        init();
+    </script>
+</body>
+</html>
